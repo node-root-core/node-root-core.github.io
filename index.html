@@ -464,36 +464,45 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  /* ============ ПОГОДА (Open-Meteo) ============ */
+  /* ============ ПОГОДА (met.no) ============ */
   var CITIES = {
     'weather-kondrovo': { lat: 54.8, lon: 35.9, name: 'Кондрово' },
     'weather-zavod':    { lat: 54.7, lon: 35.9, name: 'Полотняный Завод' }
   };
 
-  function weatherCodeToText(code) {
+  function symbolToText(code) {
+    if (!code) return '—';
+    var base = code.replace(/_(day|night|polartwilight)$/, '');
     var map = {
-      0: 'Ясно', 1: 'Преимущественно ясно', 2: 'Переменная облачность', 3: 'Пасмурно',
-      45: 'Туман', 48: 'Изморозь',
-      51: 'Лёгкая морось', 53: 'Морось', 55: 'Сильная морось',
-      61: 'Небольшой дождь', 63: 'Дождь', 65: 'Сильный дождь',
-      71: 'Небольшой снег', 73: 'Снег', 75: 'Сильный снег',
-      80: 'Ливень', 81: 'Сильный ливень', 82: 'Очень сильный ливень',
-      95: 'Гроза', 96: 'Гроза с градом', 99: 'Сильная гроза с градом'
+      'clearsky':          'Ясно',
+      'fair':              'Преимущественно ясно',
+      'partlycloudy':      'Переменная облачность',
+      'cloudy':            'Облачно',
+      'fog':               'Туман',
+      'lightrain':         'Небольшой дождь',
+      'rain':              'Дождь',
+      'heavyrain':         'Сильный дождь',
+      'lightrainshowers':  'Небольшой ливень',
+      'rainshowers':       'Ливень',
+      'heavyrainshowers':  'Сильный ливень',
+      'lightsnow':         'Небольшой снег',
+      'snow':              'Снег',
+      'heavysnow':         'Сильный снег',
+      'lightsleet':        'Небольшой мокрый снег',
+      'sleet':             'Мокрый снег',
+      'rainandthunder':    'Дождь с грозой',
+      'snowandthunder':    'Снег с грозой',
+      'thunderstorm':      'Гроза'
     };
-    return map[code] || 'Неизвестно';
+    return map[base] || code;
   }
 
   function loadWeather(id, city) {
     var box = document.getElementById(id);
     if (!box) return;
 
-    var url = 'https://api.open-meteo.com/v1/forecast'
-      + '?latitude=' + city.lat
-      + '&longitude=' + city.lon
-      + '&current_weather=true'
-      + '&hourly=relative_humidity_2m'
-      + '&timezone=Europe/Moscow'
-      + '&windspeed_unit=ms';
+    var url = 'https://api.met.no/weatherapi/locationforecast/2.0/compact'
+      + '?lat=' + city.lat + '&lon=' + city.lon;
 
     fetch(url)
       .then(function (res) {
@@ -501,15 +510,23 @@
         return res.json();
       })
       .then(function (data) {
-        if (!data || !data.current_weather) throw new Error('Нет данных');
+        var ts = data && data.properties && data.properties.timeseries;
+        if (!ts || !ts.length) throw new Error('Нет данных timeseries');
 
-        var cw = data.current_weather;
-        var temp = Math.round(cw.temperature);
-        var wind = cw.windspeed;
-        var desc = weatherCodeToText(cw.weathercode);
-        var humidity = (data.hourly && data.hourly.relative_humidity_2m)
-          ? data.hourly.relative_humidity_2m[0]
-          : '—';
+        var now = ts[0];
+        var det = now.data.instant.details;
+
+        var temp     = Math.round(det.air_temperature);
+        var wind     = det.wind_speed;
+        var humidity = det.relative_humidity;
+
+        var code = null;
+        if (now.data.next_1_hours && now.data.next_1_hours.summary) {
+          code = now.data.next_1_hours.summary.symbol_code;
+        } else if (now.data.next_6_hours && now.data.next_6_hours.summary) {
+          code = now.data.next_6_hours.summary.symbol_code;
+        }
+        var desc = symbolToText(code);
 
         box.innerHTML =
           '<div class="weather-city-title">• ' + city.name + '</div>' +
@@ -517,13 +534,14 @@
           '<div class="weather-desc">' + desc + '</div>' +
           '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
 
-        log('[WEATHER]: ' + city.name + ' — ' + temp + '°C, ' + desc);
+        log('[WEATHER]: ' + city.name + ' — ' + temp + '°C, ' + desc + ', ветер ' + wind + ' м/с');
       })
       .catch(function (err) {
         box.innerHTML =
           '<div class="weather-city-title">• ' + city.name + '</div>' +
-          '<div class="weather-error">⚠ Спутник недоступен</div>';
+          '<div class="weather-error">⚠ Спутник недоступен: ' + err.message + '</div>';
         log('[WEATHER ERROR]: ' + city.name + ' — ' + err.message, 'error');
+        console.error('Weather load failed for ' + city.name + ':', err);
       });
   }
 
