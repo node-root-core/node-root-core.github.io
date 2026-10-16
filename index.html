@@ -33,7 +33,6 @@
   body.flash { background: #143d1e !important; transition: background 0.1s; }
   body.panic { background: #3a0d0d !important; transition: background 0.4s; }
 
-  /* ============ ШАПКА ============ */
   header {
     text-align: center;
     margin-bottom: 30px;
@@ -56,7 +55,6 @@
     font-style: italic;
   }
 
-  /* ============ СЕТКА ============ */
   .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -65,7 +63,6 @@
     align-items: stretch;
   }
 
-  /* ============ КАРТОЧКИ ============ */
   .card {
     background: var(--card);
     border: 1px solid var(--card-border);
@@ -92,7 +89,6 @@
     letter-spacing: 1px;
   }
 
-  /* ============ ПОГОДА ============ */
   .weather-list {
     display: flex;
     flex-direction: column;
@@ -147,7 +143,6 @@
     font-size: 0.8rem;
   }
 
-  /* ============ ТЕРМИНАЛ ============ */
   .terminal-card { position: relative; }
 
   .terminal-card::after {
@@ -181,7 +176,6 @@
     z-index: 2;
   }
 
-  /* ============ ПОДПИСЬ ============ */
   .caption {
     text-align: center;
     font-style: italic;
@@ -200,7 +194,6 @@
     text-shadow: 0 0 8px var(--accent-glow);
   }
 
-  /* ============ ВАЛЮТЫ ============ */
   .rates {
     display: flex;
     flex-direction: column;
@@ -241,7 +234,6 @@
     50%      { opacity: 0.35; transform: translateY(-2px); }
   }
 
-  /* ============ TEXTAREA ============ */
   textarea {
     width: 100%;
     min-height: 130px;
@@ -263,7 +255,6 @@
     box-shadow: 0 0 12px var(--accent-glow);
   }
 
-  /* ============ КНОПКИ ============ */
   button {
     background: transparent;
     color: var(--accent);
@@ -310,7 +301,6 @@
     padding-top: 14px;
   }
 
-  /* ============ ЛОГ ============ */
   .log-panel {
     background: #0d1117;
     border: 1px solid var(--card-border);
@@ -330,7 +320,6 @@
   .log-panel .line.error  { color: #e67e22; }
   .log-panel .line.reset  { color: #3498db; }
 
-  /* ============ ФУТЕР ============ */
   footer {
     margin-top: 30px;
     padding-top: 20px;
@@ -343,7 +332,6 @@
 
   .full-width { grid-column: 1 / -1; }
 
-  /* ============ АДАПТИВ ============ */
   @media (max-width: 768px) {
     body { padding: 12px; }
     .grid { grid-template-columns: 1fr; gap: 14px; }
@@ -362,7 +350,6 @@
 
 <div class="grid">
 
-  <!-- ПОГОДА -->
   <div class="card">
     <h2>🌡 Физика атмосферы</h2>
     <div class="weather-list">
@@ -377,7 +364,6 @@
     </div>
   </div>
 
-  <!-- ВАЛЮТЫ -->
   <div class="card">
     <h2>💱 Макроэкономика</h2>
     <div class="rates" id="rates">
@@ -395,7 +381,6 @@
     </div>
   </div>
 
-  <!-- ОКОШКО В ЕВРОПУ -->
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
     <iframe
@@ -410,7 +395,6 @@
     </div>
   </div>
 
-  <!-- ИИ-АНАЛИТИК -->
   <div class="card full-width">
     <h2>🤖 ИИ-Аналитик</h2>
     <textarea id="ai-input" placeholder="Вставьте сюда партию свежесваренной останкинской лапши..."></textarea>
@@ -419,7 +403,6 @@
     </div>
   </div>
 
-  <!-- ЛОГ -->
   <div class="card full-width">
     <h2>📟 Приборная панель</h2>
     <div class="log-panel" id="log">
@@ -464,7 +447,7 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  /* ============ ПОГОДА (met.no + CORS-прокси) ============ */
+  /* ============ ПОГОДА (met.no напрямую + прокси в резерве + кэш) ============ */
   var CITIES = {
     'weather-kondrovo': { lat: 54.8, lon: 35.9, name: 'Кондрово' },
     'weather-zavod':    { lat: 54.7, lon: 35.9, name: 'Полотняный Завод' }
@@ -501,49 +484,82 @@
     var box = document.getElementById(id);
     if (!box) return;
 
+    var cacheKey = 'weather_' + id;
+    var cached = null;
+    try { cached = JSON.parse(localStorage.getItem(cacheKey)); } catch (e) {}
+
+    if (cached && cached.html) {
+      box.innerHTML = cached.html +
+        '<div class="weather-extra" style="font-size:0.65rem;">(кэш от ' + cached.time + ')</div>';
+    }
+
     var target = 'https://api.met.no/weatherapi/locationforecast/2.0/compact'
       + '?lat=' + city.lat + '&lon=' + city.lon;
-    var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
 
-    fetch(url)
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        var ts = data && data.properties && data.properties.timeseries;
-        if (!ts || !ts.length) throw new Error('Нет данных timeseries');
+    var attempts = [
+      target,
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
+      'https://corsproxy.io/?' + encodeURIComponent(target),
+      'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(target)
+    ];
 
-        var now = ts[0];
-        var det = now.data.instant.details;
-
-        var temp     = Math.round(det.air_temperature);
-        var wind     = det.wind_speed;
-        var humidity = det.relative_humidity;
-
-        var code = null;
-        if (now.data.next_1_hours && now.data.next_1_hours.summary) {
-          code = now.data.next_1_hours.summary.symbol_code;
-        } else if (now.data.next_6_hours && now.data.next_6_hours.summary) {
-          code = now.data.next_6_hours.summary.symbol_code;
+    function tryAttempt(i) {
+      if (i >= attempts.length) {
+        if (!cached) {
+          box.innerHTML =
+            '<div class="weather-city-title">• ' + city.name + '</div>' +
+            '<div class="weather-error">⚠ Спутник недоступен</div>';
         }
-        var desc = symbolToText(code);
+        log('[WEATHER ERROR]: ' + city.name + ' — все попытки провалились', 'error');
+        return;
+      }
 
-        box.innerHTML =
-          '<div class="weather-city-title">• ' + city.name + '</div>' +
-          '<div class="weather-temp">' + temp + '°C</div>' +
-          '<div class="weather-desc">' + desc + '</div>' +
-          '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
+      fetch(attempts[i], { cache: 'no-store' })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          var ts = data && data.properties && data.properties.timeseries;
+          if (!ts || !ts.length) throw new Error('Нет timeseries');
 
-        log('[WEATHER]: ' + city.name + ' — ' + temp + '°C, ' + desc + ', ветер ' + wind + ' м/с');
-      })
-      .catch(function (err) {
-        box.innerHTML =
-          '<div class="weather-city-title">• ' + city.name + '</div>' +
-          '<div class="weather-error">⚠ Спутник недоступен: ' + err.message + '</div>';
-        log('[WEATHER ERROR]: ' + city.name + ' — ' + err.message, 'error');
-        console.error('Weather load failed for ' + city.name + ':', err);
-      });
+          var now = ts[0];
+          var det = now.data.instant.details;
+          var temp = Math.round(det.air_temperature);
+          var wind = det.wind_speed;
+          var humidity = det.relative_humidity;
+
+          var code = null;
+          if (now.data.next_1_hours && now.data.next_1_hours.summary) {
+            code = now.data.next_1_hours.summary.symbol_code;
+          } else if (now.data.next_6_hours && now.data.next_6_hours.summary) {
+            code = now.data.next_6_hours.summary.symbol_code;
+          }
+          var desc = symbolToText(code);
+
+          var html =
+            '<div class="weather-city-title">• ' + city.name + '</div>' +
+            '<div class="weather-temp">' + temp + '°C</div>' +
+            '<div class="weather-desc">' + desc + '</div>' +
+            '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
+
+          box.innerHTML = html;
+
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+              html: html,
+              time: new Date().toLocaleTimeString('ru-RU').slice(0, 5)
+            }));
+          } catch (e) {}
+
+          log('[WEATHER]: ' + city.name + ' — ' + temp + '°C, ' + desc + ' (источник #' + (i + 1) + ')');
+        })
+        .catch(function () {
+          tryAttempt(i + 1);
+        });
+    }
+
+    tryAttempt(0);
   }
 
   function loadAllWeather() {
