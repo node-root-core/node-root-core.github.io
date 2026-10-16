@@ -92,39 +92,59 @@
     letter-spacing: 1px;
   }
 
-  /* ============ ПЛЕЙСХОЛДЕР ПОГОДЫ ============ */
-  .weather-wrap {
-    position: relative;
-    background: #0d1117;
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    min-height: 160px;
-  }
-
-  .weather-wrap iframe {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    height: 160px;
-    display: block;
-    border: none;
-    background: transparent;
-  }
-
-  .weather-placeholder {
-    position: absolute;
-    inset: 0;
+  /* ============ ПОГОДА ============ */
+  .weather-list {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    background: #0d1117;
     padding: 12px;
-    text-align: center;
+    border-radius: 6px;
+    flex: 1;
+  }
+
+  .weather-city {
+    border-bottom: 1px dashed var(--card-border);
+    padding-bottom: 10px;
+  }
+
+  .weather-city:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .weather-city-title {
+    font-size: 0.78rem;
     color: var(--muted);
-    font-size: 0.72rem;
+    margin-bottom: 6px;
     letter-spacing: 0.5px;
-    z-index: 1;
+  }
+
+  .weather-temp {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+
+  .weather-desc {
+    font-size: 0.82rem;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .weather-extra {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .weather-loading {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-style: italic;
+  }
+
+  .weather-error {
+    color: var(--danger);
+    font-size: 0.8rem;
   }
 
   /* ============ ТЕРМИНАЛ ============ */
@@ -327,8 +347,6 @@
   @media (max-width: 768px) {
     body { padding: 12px; }
     .grid { grid-template-columns: 1fr; gap: 14px; }
-    .weather-wrap,
-    .weather-wrap iframe { height: 140px; min-height: 140px; }
     .terminal-frame { height: 380px; }
     .controls { flex-direction: column; }
     .rate-value { font-size: 1.6rem; }
@@ -344,31 +362,20 @@
 
 <div class="grid">
 
-<!-- ПОГОДА КАРТИНКАМИ -->
-<div class="card">
-  <h2>🌡 Физика атмосферы</h2>
-  <div style="display: flex; flex-direction: column; gap: 15px; background: #0d1117; padding: 12px; border-radius: 6px;">
-
-    <div>
-      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">• Метеоспутник Кондрово:</p>
-      <img
-        src="https://wttr.in/Kondrovo.png?0&amp;m&amp;lang=ru"
-        alt="Погода Кондрово"
-        loading="lazy"
-        style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
+  <!-- ПОГОДА -->
+  <div class="card">
+    <h2>🌡 Физика атмосферы</h2>
+    <div class="weather-list">
+      <div class="weather-city" id="weather-kondrovo">
+        <div class="weather-city-title">• Кондрово</div>
+        <div class="weather-loading">Загрузка спутника...</div>
+      </div>
+      <div class="weather-city" id="weather-zavod">
+        <div class="weather-city-title">• Полотняный Завод</div>
+        <div class="weather-loading">Загрузка спутника...</div>
+      </div>
     </div>
-
-    <div>
-      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">• Метеоспутник Полотняный Завод:</p>
-      <img
-        src="https://wttr.in/Polotnyany_Zavod.png?0&amp;m&amp;lang=ru"
-        alt="Погода Полотняный Завод"
-        loading="lazy"
-        style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
-    </div>
-
   </div>
-</div>
 
   <!-- ВАЛЮТЫ -->
   <div class="card">
@@ -457,6 +464,76 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
+  /* ============ ПОГОДА (Open-Meteo) ============ */
+  var CITIES = {
+    'weather-kondrovo': { lat: 54.8, lon: 35.9, name: 'Кондрово' },
+    'weather-zavod':    { lat: 54.7, lon: 35.9, name: 'Полотняный Завод' }
+  };
+
+  function weatherCodeToText(code) {
+    var map = {
+      0: 'Ясно', 1: 'Преимущественно ясно', 2: 'Переменная облачность', 3: 'Пасмурно',
+      45: 'Туман', 48: 'Изморозь',
+      51: 'Лёгкая морось', 53: 'Морось', 55: 'Сильная морось',
+      61: 'Небольшой дождь', 63: 'Дождь', 65: 'Сильный дождь',
+      71: 'Небольшой снег', 73: 'Снег', 75: 'Сильный снег',
+      80: 'Ливень', 81: 'Сильный ливень', 82: 'Очень сильный ливень',
+      95: 'Гроза', 96: 'Гроза с градом', 99: 'Сильная гроза с градом'
+    };
+    return map[code] || 'Неизвестно';
+  }
+
+  function loadWeather(id, city) {
+    var box = document.getElementById(id);
+    if (!box) return;
+
+    var url = 'https://api.open-meteo.com/v1/forecast'
+      + '?latitude=' + city.lat
+      + '&longitude=' + city.lon
+      + '&current_weather=true'
+      + '&hourly=relative_humidity_2m'
+      + '&timezone=Europe/Moscow'
+      + '&windspeed_unit=ms';
+
+    fetch(url)
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || !data.current_weather) throw new Error('Нет данных');
+
+        var cw = data.current_weather;
+        var temp = Math.round(cw.temperature);
+        var wind = cw.windspeed;
+        var desc = weatherCodeToText(cw.weathercode);
+        var humidity = (data.hourly && data.hourly.relative_humidity_2m)
+          ? data.hourly.relative_humidity_2m[0]
+          : '—';
+
+        box.innerHTML =
+          '<div class="weather-city-title">• ' + city.name + '</div>' +
+          '<div class="weather-temp">' + temp + '°C</div>' +
+          '<div class="weather-desc">' + desc + '</div>' +
+          '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
+
+        log('[WEATHER]: ' + city.name + ' — ' + temp + '°C, ' + desc);
+      })
+      .catch(function (err) {
+        box.innerHTML =
+          '<div class="weather-city-title">• ' + city.name + '</div>' +
+          '<div class="weather-error">⚠ Спутник недоступен</div>';
+        log('[WEATHER ERROR]: ' + city.name + ' — ' + err.message, 'error');
+      });
+  }
+
+  function loadAllWeather() {
+    for (var id in CITIES) {
+      if (CITIES.hasOwnProperty(id)) loadWeather(id, CITIES[id]);
+    }
+  }
+
+  /* ============ ВАЛЮТЫ ============ */
   function renderRate(el, value) {
     el.innerHTML = '';
     el.classList.remove('up', 'down');
@@ -506,6 +583,7 @@
       });
   }
 
+  /* ============ ПЕЧАТНЫЙ СТАНОК ============ */
   btnPrint.addEventListener('click', function () {
     if (printActive) return;
     if (!currencyReady) {
@@ -560,6 +638,7 @@
     }, 4000);
   });
 
+  /* ============ ШНУРОК ============ */
   btnCord.addEventListener('click', function () {
     if (cordActive) return;
     cordActive = true;
@@ -584,6 +663,7 @@
     }, 3500);
   });
 
+  /* ============ СЕКРЕТ ============ */
   var captionClicks = 0;
   var captionTimer = null;
 
@@ -607,6 +687,7 @@
     }
   });
 
+  /* ============ ИИ ============ */
   btnAi.addEventListener('click', function () {
     var text = aiInput.value.trim();
 
@@ -622,8 +703,10 @@
     }, 250);
   });
 
+  /* ============ СТАРТ ============ */
   log('[BOOT]: Проверка соединения с open.er-api.com...');
   loadCurrency();
+  loadAllWeather();
 
 })();
 </script>
