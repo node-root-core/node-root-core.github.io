@@ -1,0 +1,50 @@
+name: Update weather
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch weather from met.no
+        run: |
+          set -e
+          UA="node-root-core.github.io weather-bot (contact: node-root-core@users.noreply.github.com)"
+          curl -sS -H "User-Agent: $UA" \
+            "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=54.8&lon=35.9" \
+            -o k.json
+          curl -sS -H "User-Agent: $UA" \
+            "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=54.7&lon=35.9" \
+            -o z.json
+
+      - name: Merge and save weather.json
+        run: |
+          python3 - <<'PY'
+          import json, datetime
+          with open('k.json') as f: k = json.load(f)
+          with open('z.json') as f: z = json.load(f)
+          result = {
+              'updated': datetime.datetime.utcnow().isoformat() + 'Z',
+              'kondrovo': k['properties']['timeseries'][0],
+              'zavod':    z['properties']['timeseries'][0],
+          }
+          with open('weather.json', 'w', encoding='utf-8') as f:
+              json.dump(result, f, ensure_ascii=False)
+          PY
+          rm k.json z.json
+          echo "Готово. Обновлено: $(date -u +%H:%M) UTC"
+
+      - name: Commit weather.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weather.json
+          git diff --staged --quiet || git commit -m "Auto-update weather.json"
+          git push
