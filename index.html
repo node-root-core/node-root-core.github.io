@@ -464,7 +464,7 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  /* ============ ПОГОДА (met.no) ============ */
+  /* ============ ПОГОДА (met.no + CORS-прокси) ============ */
   var CITIES = {
     'weather-kondrovo': { lat: 54.8, lon: 35.9, name: 'Кондрово' },
     'weather-zavod':    { lat: 54.7, lon: 35.9, name: 'Полотняный Завод' }
@@ -501,8 +501,9 @@
     var box = document.getElementById(id);
     if (!box) return;
 
-    var url = 'https://api.met.no/weatherapi/locationforecast/2.0/compact'
+    var target = 'https://api.met.no/weatherapi/locationforecast/2.0/compact'
       + '?lat=' + city.lat + '&lon=' + city.lon;
+    var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
 
     fetch(url)
       .then(function (res) {
