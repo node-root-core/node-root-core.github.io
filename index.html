@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АКАДЕМИЯ БЕЗ АШИБОК</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --card: #161b22;
+    --card-border: #21262d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #2ecc71;
+    --accent-glow: rgba(46, 204, 113, 0.15);
+    --danger: #e74c3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    line-height: 1.5;
+    padding: 20px;
+    min-height: 100vh;
+    transition: background 0.4s ease;
+  }
+
+  body.flash { background: #143d1e !important; transition: background 0.1s; }
+  body.panic { background: #3a0d0d !important; transition: background 0.4s; }
+
+  /* ============ ШАПКА ============ */
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 20px;
+  }
+
+  h1 {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    word-break: break-word;
+    text-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: clamp(0.75rem, 2vw, 0.9rem);
+    font-style: italic;
+  }
+
+  /* ============ СЕТКА ============ */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+    align-items: stretch;
+  }
+
+  /* ============ КАРТОЧКИ ============ */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                0 0 16px var(--accent-glow);
+  }
+
+  .card h2 {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ============ ПЛЕЙСХОЛДЕР ПОГОДЫ ============ */
+  .weather-wrap {
+    position: relative;
+    background: #0d1117;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    min-height: 160px;
+  }
+
+  .weather-wrap iframe {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 160px;
+    display: block;
+    border: none;
+    background: transparent;
+  }
+
+  .weather-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    z-index: 1;
+  }
+
+  /* ============ ТЕРМИНАЛ ============ */
+  .terminal-card { position: relative; }
+
+  .terminal-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        rgba(46, 204, 113, 0.035) 0px,
+        rgba(46, 204, 113, 0.035) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    z-index: 3;
+    opacity: 0.7;
+  }
+
+  .terminal-frame {
+    width: 100%;
+    height: 500px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    background: #0d1117;
+    display: block;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.15);
+    transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ============ ПОДПИСЬ ============ */
+  .caption {
+    text-align: center;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 10px;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s, text-shadow 0.2s;
+    position: relative;
+    z-index: 4;
+  }
+
+  .caption:hover {
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* ============ ВАЛЮТЫ ============ */
+  .rates {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .rate-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px dashed var(--card-border);
+    padding-bottom: 8px;
+  }
+
+  .rate-label { color: var(--muted); font-size: 0.85rem; }
+
+  .rate-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text);
+    transition: color 0.2s;
+    line-height: 1.1;
+  }
+
+  .rate-value.up { color: var(--accent); }
+  .rate-value.down { color: var(--danger); }
+
+  .rate-arrow {
+    display: inline-block;
+    font-size: 1rem;
+    margin-left: 6px;
+    animation: pulseArrow 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulseArrow {
+    0%, 100% { opacity: 1; transform: translateY(0); }
+    50%      { opacity: 0.35; transform: translateY(-2px); }
+  }
+
+  /* ============ TEXTAREA ============ */
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    background: #0d1117;
+    color: var(--text);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+    margin-bottom: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  /* ============ КНОПКИ ============ */
+  button {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, opacity 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  button.danger {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  button.danger:hover:not(:disabled) {
+    background: var(--danger);
+    color: var(--bg);
+    box-shadow: 0 0 16px rgba(231, 76, 60, 0.25);
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+
+  /* ============ ЛОГ ============ */
+  .log-panel {
+    background: #0d1117;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    height: 160px;
+    overflow-y: auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .log-panel .line { margin-bottom: 3px; word-break: break-word; }
+  .log-panel .line.secret { color: var(--accent); }
+  .log-panel .line.fall   { color: #f39c12; }
+  .log-panel .line.panic  { color: var(--danger); font-weight: bold; }
+  .log-panel .line.error  { color: #e67e22; }
+  .log-panel .line.reset  { color: #3498db; }
+
+  /* ============ ФУТЕР ============ */
+  footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--card-border);
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .full-width { grid-column: 1 / -1; }
+
+  /* ============ АДАПТИВ ============ */
+  @media (max-width: 768px) {
+    body { padding: 12px; }
+    .grid { grid-template-columns: 1fr; gap: 14px; }
+    .weather-wrap,
+    .weather-wrap iframe { height: 140px; min-height: 140px; }
+    .terminal-frame { height: 380px; }
+    .controls { flex-direction: column; }
+    .rate-value { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>АКАДЕМИЯ БЕЗ <span style="color: var(--danger);">А</span>ШИБОК</h1>
+  <p class="subtitle">«Индификаторы здравого смысла в условиях глобального бездорожья»</p>
+</header>
+
+<div class="grid">
+
+  <!-- ПОГОДА -->
+  <div class="card">
+    <h2>🌡 Атмосферное давление</h2>
+
+    <div class="weather-wrap">
+      <div class="weather-placeholder">[CONNECTING]: Опрос метеорологического спутника Кондрово...</div>
+      <iframe
+        src="https://wttr.in/Kondrovo?0&m&lang=ru"
+        loading="lazy"
+        title="Погода Кондрово"
+        onload="this.previousElementSibling.style.display='none';"></iframe>
+    </div>
+
+    <div class="weather-wrap">
+      <div class="weather-placeholder">[CONNECTING]: Опрос метеорологического спутника Полотняный Завод...</div>
+      <iframe
+        src="https://wttr.in/Polotnyanyy_Zavod?0&m&lang=ru"
+        loading="lazy"
+        title="Погода Полотняный Завод"
+        onload="this.previousElementSibling.style.display='none';"></iframe>
+    </div>
+  </div>
+
+  <!-- ВАЛЮТЫ -->
+  <div class="card">
+    <h2>💱 Макроэкономика</h2>
+    <div class="rates" id="rates">
+      <div class="rate-row">
+        <span class="rate-label">USD / RUB</span>
+        <span class="rate-value" id="usd">—</span>
+      </div>
+      <div class="rate-row">
+        <span class="rate-label">EUR / RUB</span>
+        <span class="rate-value" id="eur">—</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="btn-print" disabled>🖨 ПЕЧАТНЫЙ СТАНОК МВФ</button>
+    </div>
+  </div>
+
+  <!-- ОКОШКО В ЕВРОПУ -->
+  <div class="card terminal-card full-width">
+    <h2>🌱 Окошко в Европу</h2>
+    <iframe
+      class="terminal-frame"
+      id="terminal"
+      src="https://cli.h2.nexus"
+      loading="lazy"
+      title="Окошко в Европу"></iframe>
+    <p class="caption" id="europe-caption">🌱 Окошко в Европу на 15 минут</p>
+    <div class="controls">
+      <button id="btn-cord" class="danger">🪢 ДЁРНУТЬ ЗА ШНУРОК</button>
+    </div>
+  </div>
+
+  <!-- ИИ-АНАЛИТИК -->
+  <div class="card full-width">
+    <h2>🤖 ИИ-Аналитик</h2>
+    <textarea id="ai-input" placeholder="Вставьте сюда партию свежесваренной останкинской лапши..."></textarea>
+    <div class="controls">
+      <button id="btn-ai">ОЧИСТИТЬ ОТ ПРОПАГАНДЫ</button>
+    </div>
+  </div>
+
+  <!-- ЛОГ -->
+  <div class="card full-width">
+    <h2>📟 Приборная панель</h2>
+    <div class="log-panel" id="log">
+      <div class="line">[BOOT]: Система инициализирована. Здравый смысл загружен.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Данный ресурс является учебным проектом по веб-разработке и интеграции ИИ.
+  Все экономические показатели и геополитические данные транслируются исключительно
+  из официальных открытых источников (МВФ, Центробанки, публикации институтов)
+  в ознакомительных целях.
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var logEl    = document.getElementById('log');
+  var usdEl    = document.getElementById('usd');
+  var eurEl    = document.getElementById('eur');
+  var caption  = document.getElementById('europe-caption');
+  var terminal = document.getElementById('terminal');
+  var btnPrint = document.getElementById('btn-print');
+  var btnCord  = document.getElementById('btn-cord');
+  var btnAi    = document.getElementById('btn-ai');
+  var aiInput  = document.getElementById('ai-input');
+
+  var printActive = false;
+  var cordActive  = false;
+  var currencyReady = false;
+  var originalUsd = null;
+  var originalEur = null;
+
+  function log(text, cls) {
+    var line = document.createElement('div');
+    line.className = 'line' + (cls ? ' ' + cls : '');
+    line.textContent = text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function renderRate(el, value) {
+    el.innerHTML = '';
+    el.classList.remove('up', 'down');
+    el.classList.add('up');
+    el.textContent = value + ' ₽';
+    var arrow = document.createElement('span');
+    arrow.className = 'rate-arrow';
+    arrow.textContent = '▲';
+    el.appendChild(arrow);
+  }
+
+  function loadCurrency() {
+    currencyReady = false;
+    btnPrint.disabled = true;
+
+    fetch('https://open.er-api.com/v6/latest/RUB')
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || !data.rates || !data.rates.USD || !data.rates.EUR) {
+          throw new Error('Bad payload');
+        }
+
+        var usdRate = (1 / data.rates.USD).toFixed(2);
+        var eurRate = (1 / data.rates.EUR).toFixed(2);
+
+        originalUsd = usdRate;
+        originalEur = eurRate;
+
+        renderRate(usdEl, usdRate);
+        renderRate(eurEl, eurRate);
+
+        currencyReady = true;
+        btnPrint.disabled = false;
+
+        log('[RATES]: Курсы получены. USD: ' + usdRate + ' ₽ | EUR: ' + eurRate + ' ₽');
+      })
+      .catch(function (err) {
+        usdEl.classList.remove('up', 'down');
+        eurEl.classList.remove('up', 'down');
+        usdEl.textContent = '⚠';
+        eurEl.textContent = '⚠';
+        log('[ERROR]: Да Барнаул на карте есть, а бензина нет... Проверяем Сибнефть', 'error');
+        console.error('Currency load failed:', err);
+      });
+  }
+
+  btnPrint.addEventListener('click', function () {
+    if (printActive) return;
+    if (!currencyReady) {
+      log('[IMF]: Отказ. Курсы ещё не загружены. Ждём ЦБ.', 'error');
+      return;
+    }
+    printActive = true;
+    btnPrint.disabled = true;
+
+    log('[CRITICAL]: Запущен печатный станок МВФ! Запускаем гиперинфляцию...', 'panic');
+    document.body.classList.add('panic');
+
+    var counter = 100;
+    var ticks = 0;
+    var interval = setInterval(function () {
+      counter = counter * 1.35 + 137;
+      ticks++;
+
+      var val = Math.floor(counter).toLocaleString('ru-RU');
+
+      usdEl.innerHTML = '';
+      eurEl.innerHTML = '';
+      usdEl.classList.remove('down');
+      eurEl.classList.remove('down');
+      usdEl.classList.add('up');
+      eurEl.classList.add('up');
+      usdEl.textContent = val + ' ₽ ▲';
+      eurEl.textContent = val + ' ₽ ▲';
+
+      if (ticks % 10 === 0) {
+        log('[IMF]: USD/RUB = ' + val + ' ₽', 'panic');
+      }
+    }, 60);
+
+    setTimeout(function () {
+      clearInterval(interval);
+      document.body.classList.remove('panic');
+      log('[IMF]: КРИТИЧЕСКИЙ УРОВЕНЬ ДОЛГА ДОСТИГНУТ', 'panic');
+
+      setTimeout(function () {
+        alert('Коллега, выключите станок! Мы летим в выгребную яму долга на 100 триллионов долларов!');
+
+        if (originalUsd !== null) renderRate(usdEl, originalUsd);
+        if (originalEur !== null) renderRate(eurEl, originalEur);
+
+        log('[RESET]: Печатный станок остановлен. Возвращаемся к реальным котировкам.');
+        printActive = false;
+        btnPrint.disabled = false;
+
+        loadCurrency();
+      }, 250);
+    }, 4000);
+  });
+
+  btnCord.addEventListener('click', function () {
+    if (cordActive) return;
+    cordActive = true;
+    btnCord.disabled = true;
+
+    log('[FALL]: Пол провалился! 🚽 Унитазы и 🗑️ кучки мусора летят по ржавой трубе внутри приборной панели!', 'fall');
+
+    terminal.style.transform = 'scale(0.92) skewY(4deg)';
+    terminal.style.borderColor = 'var(--danger)';
+    terminal.style.boxShadow = '0 0 24px rgba(231, 76, 60, 0.35)';
+
+    setTimeout(function () {
+      alert('А мы не едем, шеф. Мы летим... Прямиком в кондровский буфер обмена!');
+
+      terminal.style.transform = '';
+      terminal.style.borderColor = 'var(--accent)';
+      terminal.style.boxShadow = '';
+
+      log('[RESET]: Буфер очищен. Локальный космолёт выровнял курс.', 'reset');
+      cordActive = false;
+      btnCord.disabled = false;
+    }, 3500);
+  });
+
+  var captionClicks = 0;
+  var captionTimer = null;
+
+  caption.addEventListener('click', function () {
+    captionClicks++;
+    clearTimeout(captionTimer);
+    captionTimer = setTimeout(function () { captionClicks = 0; }, 2000);
+
+    if (captionClicks === 5) {
+      captionClicks = 0;
+      clearTimeout(captionTimer);
+
+      document.body.classList.add('flash');
+      setTimeout(function () { document.body.classList.remove('flash'); }, 200);
+
+      log('[SECRET]: Скажу вам по секрету, коллега, хорошо, что мы страшно далеки от народа! Ложись! Брошен череп', 'secret');
+
+      setTimeout(function () {
+        alert('Понял. Ложись! *звук упавшего черепа*');
+      }, 220);
+    }
+  });
+
+  btnAi.addEventListener('click', function () {
+    var text = aiInput.value.trim();
+
+    if (!text) {
+      log('[AI]: Пустой ввод. Вставь текст, коллега, не позорься.', 'error');
+      alert('Коллега, ты забыл вставить текст. Пустота — не повод для анализа.');
+      return;
+    }
+
+    log('[AI]: Запрос принят. Передаём в отдел реставрации...');
+    setTimeout(function () {
+      alert('Люди, человеки, мы виноваты в том, что мы есть! Модуль ИИ-аналитики на реставрации вместе с лифтом.');
+    }, 250);
+  });
+
+  log('[BOOT]: Проверка соединения с open.er-api.com...');
+  loadCurrency();
+
+})();
+</script>
+</body>
+</html>
