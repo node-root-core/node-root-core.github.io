@@ -344,28 +344,23 @@
 
 <div class="grid">
 
-  <!-- ПОГОДА -->
-  <div class="card">
-    <h2>🌡 Атмосферное давление</h2>
-
-    <div class="weather-wrap">
-      <div class="weather-placeholder">[CONNECTING]: Опрос метеорологического спутника Кондрово...</div>
-      <iframe
-        src="https://wttr.in/Kondrovo?0&m&lang=ru"
-        loading="lazy"
-        title="Погода Кондрово"
-        onload="this.previousElementSibling.style.display='none';"></iframe>
+ <!-- ПОГОДА ЧЕРЕЗ КАРТИНКИ -->
+<div class="card">
+  <h2>🌡 Физика атмосферы</h2>
+  <div style="display: flex; flex-direction: column; gap: 15px; background: #0d1117; padding: 12px; border-radius: 6px;">
+    
+    <div>
+      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">• Метеоспутник Кондрово:</p>
+      <img src="https://wttr.in" alt="Погода Кондрово" style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
+    </div>
+    
+    <div>
+      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">• Метеоспутник Полотняный Завод:</p>
+      <img src="https://wttr.in" alt="Погода Полотняный Завод" style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
     </div>
 
-    <div class="weather-wrap">
-      <div class="weather-placeholder">[CONNECTING]: Опрос метеорологического спутника Полотняный Завод...</div>
-      <iframe
-        src="https://wttr.in/Polotnyanyy_Zavod?0&m&lang=ru"
-        loading="lazy"
-        title="Погода Полотняный Завод"
-        onload="this.previousElementSibling.style.display='none';"></iframe>
-    </div>
   </div>
+</div>
 
   <!-- ВАЛЮТЫ -->
   <div class="card">
