@@ -344,23 +344,21 @@
 
 <div class="grid">
 
- <!-- ПОГОДА ЧЕРЕЗ КАРТИНКИ -->
-<div class="card">
-  <h2>🌡 Физика атмосферы</h2>
-  <div style="display: flex; flex-direction: column; gap: 15px; background: #0d1117; padding: 12px; border-radius: 6px;">
-    
-    <div>
-      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">• Метеоспутник Кондрово:</p>
-      <img src="https://wttr.in" alt="Погода Кондрово" style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
+  <!-- ПОГОДА ЧЕРЕЗ API -->
+  <div class="card">
+    <h2>🌡 Физика атмосферы</h2>
+    <div class="rates">
+      <div class="rate-row">
+        <span class="rate-label">Кондрово:</span>
+        <span class="rate-value" id="weather-kondrovo" style="font-size: 1.1rem; color: var(--accent);">Запрос...</span>
+      </div>
+      <div class="rate-row">
+        <span class="rate-label">Полотняный Завод:</span>
+        <span class="rate-value" id="weather-zavod" style="font-size: 1.1rem; color: var(--accent);">Запрос...</span>
+      </div>
     </div>
-    
-    <div>
-      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">• Метеоспутник Полотняный Завод:</p>
-      <img src="https://wttr.in" alt="Погода Полотняный Завод" style="max-width: 100%; height: auto; display: block; border-radius: 4px;">
-    </div>
-
   </div>
-</div>
+
 
   <!-- ВАЛЮТЫ -->
   <div class="card">
