@@ -614,6 +614,27 @@
 
   log('[BOOT]: Проверка соединения с open.er-api.com...');
   loadCurrency();
+   // === СЕТЕВОЙ ОПРОС МЕТЕОСПУТНИКОВ ===
+  async function fetchLocalWeather(location, elementId) {
+    try {
+      const response = await fetch(`https://wttr.in{location}?format=%t+%C`);
+      if (!response.ok) throw new Error();
+      const text = await response.text();
+      document.getElementById(elementId).textContent = text.trim();
+      log(`[WEATHER]: Спутник успешно обновил данные для ${location}.`);
+    } catch (e) {
+      document.getElementById(elementId).textContent = '⚠️ Ошибка спутника';
+      document.getElementById(elementId).style.color = 'var(--danger)';
+      log(`[ERROR]: Метеосервер ${location} временно недоступен.`, 'panic');
+    }
+  }
+  fetchLocalWeather('Kondrovo', 'weather-kondrovo');
+  fetchLocalWeather('Polotnyanyy_Zavod', 'weather-zavod');
+
+})();
+</script>
+</body>
+</html>
 
 })();
 </script>
