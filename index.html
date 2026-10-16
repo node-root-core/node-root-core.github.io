@@ -447,10 +447,14 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  /* ============ ПОГОДА (met.no напрямую + прокси в резерве + кэш) ============ */
-  var CITIES = {
-    'weather-kondrovo': { lat: 54.8, lon: 35.9, name: 'Кондрово' },
-    'weather-zavod':    { lat: 54.7, lon: 35.9, name: 'Полотняный Завод' }
+  /* ============ ПОГОДА из weather.json (генерируется GitHub Actions) ============ */
+  var CITY_IDS = {
+    'weather-kondrovo': 'kondrovo',
+    'weather-zavod':    'zavod'
+  };
+  var CITY_NAMES = {
+    'weather-kondrovo': 'Кондрово',
+    'weather-zavod':    'Полотняный Завод'
   };
 
   function symbolToText(code) {
@@ -480,92 +484,59 @@
     return map[base] || code;
   }
 
-  function loadWeather(id, city) {
+  function renderCity(id, entry) {
     var box = document.getElementById(id);
+    var name = CITY_NAMES[id];
     if (!box) return;
 
-    var cacheKey = 'weather_' + id;
-    var cached = null;
-    try { cached = JSON.parse(localStorage.getItem(cacheKey)); } catch (e) {}
-
-    if (cached && cached.html) {
-      box.innerHTML = cached.html +
-        '<div class="weather-extra" style="font-size:0.65rem;">(кэш от ' + cached.time + ')</div>';
+    if (!entry) {
+      box.innerHTML =
+        '<div class="weather-city-title">• ' + name + '</div>' +
+        '<div class="weather-error">⚠ Спутник недоступен</div>';
+      return;
     }
 
-    var target = 'https://api.met.no/weatherapi/locationforecast/2.0/compact'
-      + '?lat=' + city.lat + '&lon=' + city.lon;
+    var det = entry.data.instant.details;
+    var temp = Math.round(det.air_temperature);
+    var wind = det.wind_speed;
+    var humidity = det.relative_humidity;
 
-    var attempts = [
-      target,
-      'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
-      'https://corsproxy.io/?' + encodeURIComponent(target),
-      'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(target)
-    ];
-
-    function tryAttempt(i) {
-      if (i >= attempts.length) {
-        if (!cached) {
-          box.innerHTML =
-            '<div class="weather-city-title">• ' + city.name + '</div>' +
-            '<div class="weather-error">⚠ Спутник недоступен</div>';
-        }
-        log('[WEATHER ERROR]: ' + city.name + ' — все попытки провалились', 'error');
-        return;
-      }
-
-      fetch(attempts[i], { cache: 'no-store' })
-        .then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        })
-        .then(function (data) {
-          var ts = data && data.properties && data.properties.timeseries;
-          if (!ts || !ts.length) throw new Error('Нет timeseries');
-
-          var now = ts[0];
-          var det = now.data.instant.details;
-          var temp = Math.round(det.air_temperature);
-          var wind = det.wind_speed;
-          var humidity = det.relative_humidity;
-
-          var code = null;
-          if (now.data.next_1_hours && now.data.next_1_hours.summary) {
-            code = now.data.next_1_hours.summary.symbol_code;
-          } else if (now.data.next_6_hours && now.data.next_6_hours.summary) {
-            code = now.data.next_6_hours.summary.symbol_code;
-          }
-          var desc = symbolToText(code);
-
-          var html =
-            '<div class="weather-city-title">• ' + city.name + '</div>' +
-            '<div class="weather-temp">' + temp + '°C</div>' +
-            '<div class="weather-desc">' + desc + '</div>' +
-            '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
-
-          box.innerHTML = html;
-
-          try {
-            localStorage.setItem(cacheKey, JSON.stringify({
-              html: html,
-              time: new Date().toLocaleTimeString('ru-RU').slice(0, 5)
-            }));
-          } catch (e) {}
-
-          log('[WEATHER]: ' + city.name + ' — ' + temp + '°C, ' + desc + ' (источник #' + (i + 1) + ')');
-        })
-        .catch(function () {
-          tryAttempt(i + 1);
-        });
+    var code = null;
+    if (entry.data.next_1_hours && entry.data.next_1_hours.summary) {
+      code = entry.data.next_1_hours.summary.symbol_code;
+    } else if (entry.data.next_6_hours && entry.data.next_6_hours.summary) {
+      code = entry.data.next_6_hours.summary.symbol_code;
     }
+    var desc = symbolToText(code);
 
-    tryAttempt(0);
+    box.innerHTML =
+      '<div class="weather-city-title">• ' + name + '</div>' +
+      '<div class="weather-temp">' + temp + '°C</div>' +
+      '<div class="weather-desc">' + desc + '</div>' +
+      '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
   }
 
   function loadAllWeather() {
-    for (var id in CITIES) {
-      if (CITIES.hasOwnProperty(id)) loadWeather(id, CITIES[id]);
-    }
+    fetch('./weather.json?_=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        for (var id in CITY_IDS) {
+          if (CITY_IDS.hasOwnProperty(id)) {
+            renderCity(id, data[CITY_IDS[id]]);
+          }
+        }
+        var when = data.updated ? data.updated.slice(11, 16) + ' UTC' : '?';
+        log('[WEATHER]: данные получены (обновлено ' + when + ')');
+      })
+      .catch(function (err) {
+        log('[WEATHER ERROR]: не удалось прочитать weather.json — ' + err.message, 'error');
+        for (var id in CITY_IDS) {
+          if (CITY_IDS.hasOwnProperty(id)) renderCity(id, null);
+        }
+      });
   }
 
   /* ============ ВАЛЮТЫ ============ */
