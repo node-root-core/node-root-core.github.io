@@ -1,0 +1,43 @@
+name: Update US Debt
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch US Debt Data
+        run: |
+          curl -sS "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?sort=-record_date&page%5Bsize%5D=1" -o debt_raw.json
+
+      - name: Build debt.json
+        run: |
+          python3 - <<'PY'
+          import json, datetime, sys
+          with open('debt_raw.json') as f: data = json.load(f)
+          try:
+              debt_str = data['data'][0]['tot_pub_debt_out_amt']
+              debt_amount = int(float(debt_str))
+              debt_data = {'updated': datetime.datetime.utcnow().isoformat() + 'Z', 'amount': debt_amount}
+              with open('debt.json', 'w', encoding='utf-8') as f:
+                  json.dump(debt_data, f, ensure_ascii=False, indent=2)
+          except Exception as e:
+              print(f"Ошибка парсинга: {e}")
+              sys.exit(1)
+          PY
+          rm debt_raw.json
+
+      - name: Commit debt.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add debt.json
+          git diff --staged --quiet || git commit -m "Auto-update US Debt"
+          git push
