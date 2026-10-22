@@ -416,6 +416,12 @@
       </div>
     </div>
   </div>
+    <!-- ГОСДОЛГ США -->
+  <div class="card full-width">
+    <h2>💸 Госдолг США (реальное время)</h2>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 2rem; color: var(--danger); font-weight: bold; text-align: center; padding: 10px 0;" id="us-debt">$ --</div>
+    <div style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: -10px;">Обновляется из Минфина США раз в час. В реальном времени цифра растет на ~$100,000 каждую секунду.</div>
+  </div>
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
     <iframe
@@ -780,6 +786,43 @@
 
   setInterval(updateClocks, 1000);
   updateClocks();
+    /* ============ ГОСДОЛГ США ============ */
+  var debtEl = document.getElementById('us-debt');
+  var currentDebt = 0;
+  var debtInterval = null;
+
+  function loadDebt() {
+    fetch('./debt.json?_=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        currentDebt = data.amount;
+        
+        if (debtInterval) clearInterval(debtInterval);
+        
+        function updateDebtDisplay() {
+          if (debtEl) {
+            debtEl.textContent = '$ ' + Math.floor(currentDebt).toLocaleString('en-US');
+          }
+        }
+        
+        updateDebtDisplay(); // Первый вывод
+        
+        // Прибавляем по 100 000 каждую секунду
+        debtInterval = setInterval(function () {
+          currentDebt += 100000; 
+          updateDebtDisplay();
+        }, 1000);
+        
+        log('[DEBT]: Госдолг США загружен: $' + Math.floor(currentDebt).toLocaleString('en-US'));
+      })
+      .catch(function (err) {
+        if (debtEl) debtEl.textContent = 'Ошибка загрузки';
+        log('[DEBT ERROR]: ' + err.message, 'error');
+      });
+  }
   log('[BOOT]: Проверка соединения с rates.json...');
   loadCurrency();
   loadAllWeather();
