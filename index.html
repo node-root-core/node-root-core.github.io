@@ -382,7 +382,28 @@
       <button id="btn-print" disabled>🖨 ПЕЧАТНЫЙ СТАНОК МВФ</button>
     </div>
   </div>
-
+  <!-- МИРОВОЕ ВРЕМЯ -->
+  <div class="card full-width">
+    <h2>🌍 Мировые часы</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; text-align: center;">
+      <div>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">Москва</div>
+        <div class="world-clock" data-tz="Europe/Moscow" style="font-size: 1.5rem; color: var(--accent); font-weight: bold; font-family: inherit;">--:--:--</div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">Лондон</div>
+        <div class="world-clock" data-tz="Europe/London" style="font-size: 1.5rem; color: var(--text); font-weight: bold; font-family: inherit;">--:--:--</div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">Нью-Йорк</div>
+        <div class="world-clock" data-tz="America/New_York" style="font-size: 1.5rem; color: var(--text); font-weight: bold; font-family: inherit;">--:--:--</div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">Токио</div>
+        <div class="world-clock" data-tz="Asia/Tokyo" style="font-size: 1.5rem; color: var(--text); font-weight: bold; font-family: inherit;">--:--:--</div>
+      </div>
+    </div>
+  </div>
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
     <iframe
@@ -728,6 +749,25 @@
   });
 
   /* ============ СТАРТ ============ */
+    /* ============ МИРОВОЕ ВРЕМЯ ============ */
+  function updateClocks() {
+    var clocks = document.querySelectorAll('.world-clock');
+    clocks.forEach(function (el) {
+      var tz = el.getAttribute('data-tz');
+      if (!tz) return;
+      var time = new Intl.DateTimeFormat('ru-RU', {
+        timeZone: tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).format(new Date());
+      el.textContent = time;
+    });
+  }
+
+  setInterval(updateClocks, 1000);
+  updateClocks();
   log('[BOOT]: Проверка соединения с rates.json...');
   loadCurrency();
   loadAllWeather();
