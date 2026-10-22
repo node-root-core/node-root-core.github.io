@@ -789,20 +789,45 @@
   });
 
   /* ============ СТАРТ ============ */
-    /* ============ МИРОВОЕ ВРЕМЯ ============ */
+   /* ============ МИРОВОЕ ВРЕМЯ И ДАТЫ ============ */
   function updateClocks() {
     var clocks = document.querySelectorAll('.world-clock');
     clocks.forEach(function (el) {
       var tz = el.getAttribute('data-tz');
       if (!tz) return;
+
+      var now = new Date();
+
+      // 1. Обновляем время
       var time = new Intl.DateTimeFormat('ru-RU', {
         timeZone: tz,
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
         hour12: false
-      }).format(new Date());
+      }).format(now);
       el.textContent = time;
+
+      // 2. Создаем или находим блок для даты
+      var dateEl = el.nextElementSibling;
+      if (!dateEl || !dateEl.classList.contains('world-date')) {
+        dateEl = document.createElement('div');
+        dateEl.className = 'world-date';
+        // Стилизуем дату: мелкий шрифт, серый цвет
+        dateEl.style.cssText = 'font-size: 0.65rem; color: var(--muted); margin-top: 2px; font-family: inherit;';
+        el.parentNode.insertBefore(dateEl, el.nextSibling);
+      }
+
+      // 3. Форматируем дату (например: "чт, 22 окт 2026")
+      var dateStr = new Intl.DateTimeFormat('ru-RU', {
+        timeZone: tz,
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }).format(now);
+      
+      dateEl.textContent = dateStr;
     });
   }
 
