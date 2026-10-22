@@ -837,6 +837,88 @@
         log('[DEBT ERROR]: ' + err.message, 'error');
       });
   }
+    /* ============ БЛОКНОТ (ЗАМЕТКИ) ============ */
+  var noteInput = document.getElementById('note-input');
+  var btnAddNote = document.getElementById('btn-add-note');
+  var notesList = document.getElementById('notes-list');
+  var btnClearDone = document.getElementById('btn-clear-done');
+
+  function getNotes() {
+    try { return JSON.parse(localStorage.getItem('my_notes')) || []; } 
+    catch(e) { return []; }
+  }
+
+  function saveNotes(notes) {
+    localStorage.setItem('my_notes', JSON.stringify(notes));
+    renderNotes();
+  }
+
+  function renderNotes() {
+    var notes = getNotes();
+    notesList.innerHTML = '';
+    
+    if (notes.length === 0) {
+      notesList.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Пока пусто...</div>';
+      return;
+    }
+
+    notes.forEach(function(note, index) {
+      var div = document.createElement('div');
+      div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--card-border);';
+      
+      var checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = note.done;
+      checkbox.style.cursor = 'pointer';
+      checkbox.style.accentColor = 'var(--accent)';
+      checkbox.onchange = function() {
+        note.done = checkbox.checked;
+        saveNotes(notes);
+      };
+
+      var text = document.createElement('span');
+      text.textContent = note.text;
+      text.style.flex = '1';
+      text.style.fontSize = '0.85rem';
+      if (note.done) {
+        text.style.textDecoration = 'line-through';
+        text.style.color = 'var(--muted)';
+      }
+
+      var delBtn = document.createElement('button');
+      delBtn.textContent = '✕';
+      delBtn.style.cssText = 'width: auto; padding: 5px 10px; border: none; color: var(--danger); font-size: 1rem; background: transparent;';
+      delBtn.onclick = function() {
+        notes.splice(index, 1);
+        saveNotes(notes);
+      };
+
+      div.appendChild(checkbox);
+      div.appendChild(text);
+      div.appendChild(delBtn);
+      notesList.appendChild(div);
+    });
+  }
+
+  btnAddNote.addEventListener('click', function() {
+    var text = noteInput.value.trim();
+    if (!text) return;
+    var notes = getNotes();
+    notes.push({ text: text, done: false });
+    noteInput.value = '';
+    saveNotes(notes);
+  });
+
+  noteInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') btnAddNote.click();
+  });
+
+  btnClearDone.addEventListener('click', function() {
+    var notes = getNotes().filter(function(n) { return !n.done; });
+    saveNotes(notes);
+  });
+
+  renderNotes(); // Первый запуск
   log('[BOOT]: Проверка соединения с rates.json...');
   loadCurrency();
   loadAllWeather();
