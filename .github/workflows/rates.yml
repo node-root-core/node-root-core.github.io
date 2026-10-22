@@ -1,0 +1,71 @@
+name: Update rates
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Каждый час
+  workflow_dispatch: # И по кнопке
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch rates from CBR
+        run: |
+          # Скачиваем XML с официального сайта ЦБ РФ
+          curl -sS "https://www.cbr.ru/scripts/XML_daily.asp" -o rates.xml
+
+      - name: Build rates.json
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          import json, datetime, sys
+          
+          try:
+              tree = ET.parse('rates.xml')
+              root = tree.getroot()
+              
+              usd = None
+              eur = None
+              
+              # Ищем валюты в XML
+              for valute in root.findall('Valute'):
+                  char_code = valute.find('CharCode').text
+                  value = valute.find('Value').text.replace(',', '.')
+                  nominal = int(valute.find('Nominal').text)
+                  
+                  # Считаем курс за 1 единицу
+                  rate = round(float(value) / nominal, 2)
+                  
+                  if char_code == 'USD': usd = rate
+                  if char_code == 'EUR': eur = rate
+                  
+              if not usd or not eur:
+                  raise ValueError("Не найдены USD или EUR в XML")
+                  
+              rate_data = {
+                  'updated': datetime.datetime.utcnow().isoformat() + 'Z',
+                  'usd': usd,
+                  'eur': eur,
+                  'source': 'CBR'
+              }
+              
+              with open('rates.json', 'w', encoding='utf-8') as f:
+                  json.dump(rate_data, f, ensure_ascii=False, indent=2)
+                  
+          except Exception as e:
+              print(f"Ошибка: {e}")
+              sys.exit(1)
+          PY
+          rm rates.xml
+
+      - name: Commit rates.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rates.json
+          git diff --staged --quiet || git commit -m "Auto-update rates from CBR"
+          git push
