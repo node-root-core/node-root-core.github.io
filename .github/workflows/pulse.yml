@@ -1,0 +1,71 @@
+name: Pulse Runeta
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Каждые 15 минут
+  workflow_dispatch: # И по кнопке
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check sites
+        run: |
+          python3 - <<'PY'
+          import json, datetime, subprocess
+          
+          # Твой список сервисов
+          sites = {
+              "Яндекс": "https://ya.ru",
+              "ВКонтакте": "https://vk.com",
+              "Госуслуги": "https://www.gosuslugi.ru",
+              "MAX": "https://max.ru",
+              "ChatGPT": "https://chatgpt.com",
+              "Gemini": "https://gemini.google.com",
+              "DeepSeek": "https://chat.deepseek.com",
+              "Qwen": "https://chat.qwenlm.ai",
+              "Grok": "https://grok.com",
+              "GitHub": "https://github.com",
+              "GitVerse": "https://gitverse.ru",
+              "Hugging Face": "https://huggingface.co",
+              "Cloudflare": "https://dash.cloudflare.com",
+              "Telegram": "https://t.me",
+              "YouTube": "https://www.youtube.com",
+              "Discord": "https://discord.com"
+          }
+          
+          results = {}
+          for name, url in sites.items():
+              # Запрос через curl, получаем только HTTP-код
+              res = subprocess.run(
+                  ['curl', '-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '10', url], 
+                  capture_output=True, text=True
+              )
+              code = res.stdout.strip()
+              
+              # Если код 2xx или 3xx — сервис отвечает
+              if code.startswith('2') or code.startswith('3'):
+                  results[name] = "ok"
+              else:
+                  results[name] = "down"
+                  
+          pulse_data = {
+              "updated": datetime.datetime.utcnow().isoformat() + "Z",
+              "services": results
+          }
+          
+          with open('pulse.json', 'w', encoding='utf-8') as f:
+              json.dump(pulse_data, f, ensure_ascii=False, indent=2)
+          PY
+
+      - name: Commit pulse.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pulse.json
+          git diff --staged --quiet || git commit -m "Auto-update Pulse Runeta"
+          git push
