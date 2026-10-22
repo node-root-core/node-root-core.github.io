@@ -422,6 +422,20 @@
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 2rem; color: var(--danger); font-weight: bold; text-align: center; padding: 10px 0;" id="us-debt">$ --</div>
     <div style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: -10px;">Обновляется из Минфина США раз в час. В реальном времени цифра растет на ~$100,000 каждую секунду.</div>
   </div>
+    <!-- БЛОКНОТ -->
+  <div class="card full-width">
+    <h2>📝 Блокнот</h2>
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <input type="text" id="note-input" placeholder="Что нужно сделать?" style="flex: 1; background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; outline: none;">
+      <button id="btn-add-note" style="width: auto; padding: 10px 20px;">+</button>
+    </div>
+    <div id="notes-list" style="display: flex; flex-direction: column; gap: 10px;">
+      <!-- Сюда будут падать заметки -->
+    </div>
+    <div class="controls" style="margin-top: 15px;">
+      <button id="btn-clear-done" class="danger" style="font-size: 0.75rem; padding: 10px;">Удалить выполненные</button>
+    </div>
+  </div>
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
     <iframe
