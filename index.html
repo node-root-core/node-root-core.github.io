@@ -566,18 +566,17 @@
     currencyReady = false;
     btnPrint.disabled = true;
 
-    fetch('https://open.er-api.com/v6/latest/RUB')
+    // Читаем локальный файл rates.json, который создал робот
+    fetch('./rates.json?_=' + Date.now(), { cache: 'no-store' })
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
       .then(function (data) {
-        if (!data || !data.rates || !data.rates.USD || !data.rates.EUR) {
-          throw new Error('Bad payload');
-        }
+        if (!data || !data.usd || !data.eur) throw new Error('Нет данных в rates.json');
 
-        var usdRate = (1 / data.rates.USD).toFixed(2);
-        var eurRate = (1 / data.rates.EUR).toFixed(2);
+        var usdRate = data.usd.toString();
+        var eurRate = data.eur.toString();
 
         originalUsd = usdRate;
         originalEur = eurRate;
@@ -588,18 +587,17 @@
         currencyReady = true;
         btnPrint.disabled = false;
 
-        log('[RATES]: Курсы получены. USD: ' + usdRate + ' ₽ | EUR: ' + eurRate + ' ₽');
+        var when = data.updated ? data.updated.slice(11, 16) + ' UTC' : '?';
+        log('[RATES]: USD: ' + usdRate + ' ₽ | EUR: ' + eurRate + ' ₽ (ЦБ РФ, обновлено ' + when + ')');
       })
       .catch(function (err) {
         usdEl.classList.remove('up', 'down');
         eurEl.classList.remove('up', 'down');
         usdEl.textContent = '⚠';
         eurEl.textContent = '⚠';
-        log('[ERROR]: Да Барнаул на карте есть, а бензина нет... Проверяем Сибнефть', 'error');
-        console.error('Currency load failed:', err);
+        log('[RATES ERROR]: ' + err.message, 'error');
       });
   }
-
   /* ============ ПЕЧАТНЫЙ СТАНОК ============ */
   btnPrint.addEventListener('click', function () {
     if (printActive) return;
