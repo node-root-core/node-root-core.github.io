@@ -1,0 +1,21 @@
+{
+  "updated": "2026-10-22T13:58:44.548693Z",
+  "services": {
+    "Яндекс": "ok",
+    "ВКонтакте": "ok",
+    "Госуслуги": "down",
+    "MAX": "ok",
+    "ChatGPT": "down",
+    "Gemini": "ok",
+    "DeepSeek": "down",
+    "Qwen": "down",
+    "Grok": "ok",
+    "GitHub": "ok",
+    "GitVerse": "ok",
+    "Hugging Face": "ok",
+    "Cloudflare": "down",
+    "Telegram": "ok",
+    "YouTube": "ok",
+    "Discord": "ok"
+  }
+}
