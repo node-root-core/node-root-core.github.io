@@ -212,6 +212,7 @@
   .rate-label { color: var(--muted); font-size: 0.85rem; }
 
   .rate-value {
+    font-family: inherit; /* Исправляет шрифт цифр */
     font-size: 2rem;
     font-weight: bold;
     color: var(--text);
@@ -540,16 +541,21 @@
   }
 
   /* ============ ВАЛЮТЫ ============ */
-   function renderRate(el, value) {
-    var currentText = el.textContent.replace(/[^0-9.]/g, '');
-    var previous = parseFloat(currentText);
+  function renderRate(el, value, storageKey) {
+    var previous = null;
+    try {
+      var stored = localStorage.getItem(storageKey);
+      if (stored !== null) previous = parseFloat(stored);
+      localStorage.setItem(storageKey, value);
+    } catch(e) {}
+
     var current = parseFloat(value);
 
     el.innerHTML = '';
     el.classList.remove('up', 'down');
     el.textContent = value + ' ₽';
 
-    if (!isNaN(previous) && previous !== current) {
+    if (previous !== null && !isNaN(previous) && previous !== current) {
       var arrow = document.createElement('span');
       arrow.className = 'rate-arrow';
       if (current > previous) {
@@ -562,6 +568,7 @@
       el.appendChild(arrow);
     }
   }
+
   function loadCurrency() {
     currencyReady = false;
     btnPrint.disabled = true;
@@ -581,8 +588,8 @@
         originalUsd = usdRate;
         originalEur = eurRate;
 
-        renderRate(usdEl, usdRate);
-        renderRate(eurEl, eurRate);
+        renderRate(usdEl, usdRate, 'prev_usd');
+        renderRate(eurEl, eurRate, 'prev_eur');
 
         currencyReady = true;
         btnPrint.disabled = false;
@@ -598,6 +605,7 @@
         log('[RATES ERROR]: ' + err.message, 'error');
       });
   }
+
   /* ============ ПЕЧАТНЫЙ СТАНОК ============ */
   btnPrint.addEventListener('click', function () {
     if (printActive) return;
@@ -641,8 +649,8 @@
       setTimeout(function () {
         alert('Коллега, выключите станок! Мы летим в выгребную яму долга на 100 триллионов долларов!');
 
-        if (originalUsd !== null) renderRate(usdEl, originalUsd);
-        if (originalEur !== null) renderRate(eurEl, originalEur);
+        if (originalUsd !== null) renderRate(usdEl, originalUsd, 'prev_usd');
+        if (originalEur !== null) renderRate(eurEl, originalEur, 'prev_eur');
 
         log('[RESET]: Печатный станок остановлен. Возвращаемся к реальным котировкам.');
         printActive = false;
@@ -719,7 +727,7 @@
   });
 
   /* ============ СТАРТ ============ */
-  log('[BOOT]: Проверка соединения с open.er-api.com...');
+  log('[BOOT]: Проверка соединения с rates.json...');
   loadCurrency();
   loadAllWeather();
 
