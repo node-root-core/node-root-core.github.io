@@ -422,7 +422,15 @@
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 2rem; color: var(--danger); font-weight: bold; text-align: center; padding: 10px 0;" id="us-debt">$ --</div>
     <div style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: -10px;">Обновляется из Минфина США раз в час. В реальном времени цифра растет на ~$100,000 каждую секунду.</div>
   </div>
-    <!-- БЛОКНОТ -->
+    <!-- ПУЛЬС РУНЕТА -->
+  <div class="card full-width">
+    <h2>🚦 Пульс Рунета (взгляд из США)</h2>
+    <div id="pulse-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; padding: 10px 0;">
+      <div style="color: var(--muted); grid-column: 1 / -1; text-align: center;">Загрузка статусов...</div>
+    </div>
+    <div style="text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 5px;">🟢 Доступен из США | 🔴 Заблокирован или недоступен</div>
+  </div>  
+  <!-- БЛОКНОТ -->
   <div class="card full-width">
     <h2>📝 Блокнот</h2>
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -919,10 +927,51 @@
   });
 
   renderNotes(); // Первый запуск
+    /* ============ ПУЛЬС РУНЕТА ============ */
+  function loadPulse() {
+    fetch('./pulse.json?_=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        var container = document.getElementById('pulse-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        for (var name in data.services) {
+          var status = data.services[name];
+          var isOk = (status === 'ok');
+          
+          var item = document.createElement('div');
+          item.style.cssText = 'display: flex; align-items: center; gap: 8px; background: #0d1117; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--card-border);';
+          
+          var dot = document.createElement('div');
+          dot.style.cssText = 'width: 10px; height: 10px; border-radius: 50%; background: ' + (isOk ? 'var(--accent)' : 'var(--danger)') + '; box-shadow: 0 0 8px ' + (isOk ? 'var(--accent)' : 'var(--danger)') + ';';
+          
+          var text = document.createElement('span');
+          text.textContent = name;
+          text.style.fontSize = '0.8rem';
+          
+          item.appendChild(dot);
+          item.appendChild(text);
+          container.appendChild(item);
+        }
+        
+        var when = data.updated ? data.updated.slice(11, 16) + ' UTC' : '?';
+        log('[PULSE]: Статусы обновлены (' + when + ')');
+      })
+      .catch(function (err) {
+        var container = document.getElementById('pulse-container');
+        if (container) container.innerHTML = '<div style="color: var(--danger); grid-column: 1 / -1; text-align: center;">Ошибка загрузки Пульса</div>';
+        log('[PULSE ERROR]: ' + err.message, 'error');
+      });
+  }
   log('[BOOT]: Проверка соединения с rates.json...');
   loadCurrency();
   loadAllWeather();
   loadDebt(); // <--- ВОТ ЭТА СТРОЧКА ВСЁ ЗАПУСТИТ
+  loadPulse(); // <--- Запуск Пульса
 
 })();
 </script>
