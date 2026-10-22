@@ -540,17 +540,28 @@
   }
 
   /* ============ ВАЛЮТЫ ============ */
-  function renderRate(el, value) {
+   function renderRate(el, value) {
+    var currentText = el.textContent.replace(/[^0-9.]/g, '');
+    var previous = parseFloat(currentText);
+    var current = parseFloat(value);
+
     el.innerHTML = '';
     el.classList.remove('up', 'down');
-    el.classList.add('up');
     el.textContent = value + ' ₽';
-    var arrow = document.createElement('span');
-    arrow.className = 'rate-arrow';
-    arrow.textContent = '▲';
-    el.appendChild(arrow);
-  }
 
+    if (!isNaN(previous) && previous !== current) {
+      var arrow = document.createElement('span');
+      arrow.className = 'rate-arrow';
+      if (current > previous) {
+        el.classList.add('up');
+        arrow.textContent = '▲';
+      } else {
+        el.classList.add('down');
+        arrow.textContent = '▼';
+      }
+      el.appendChild(arrow);
+    }
+  }
   function loadCurrency() {
     currencyReady = false;
     btnPrint.disabled = true;
