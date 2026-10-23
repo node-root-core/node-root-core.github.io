@@ -801,19 +801,77 @@
   /* ============ ИИ ============ */
   btnAi.addEventListener('click', function () {
     var text = aiInput.value.trim();
-
     if (!text) {
       log('[AI]: Пустой ввод. Вставь текст, коллега, не позорься.', 'error');
       alert('Коллега, ты забыл вставить текст. Пустота — не повод для анализа.');
       return;
     }
 
-    log('[AI]: Запрос принят. Передаём в отдел реставрации...');
-    setTimeout(function () {
-      alert('Люди, человеки, мы виноваты в том, что мы есть! Модуль ИИ-аналитики на реставрации вместе с лифтом.');
-    }, 250);
-  });
+    // Запрашиваем токен один раз и сохраняем в браузере
+    var token = localStorage.getItem('gh_token');
+    if (!token) {
+      token = prompt('Введи свой GitHub PAT (созданный для Issues). Он сохранится в браузере, и больше ты его не увидишь.');
+      if (!token) return;
+      localStorage.setItem('gh_token', token);
+    }
 
+    // ШУТКА ПРО ЛИФТ ЗДЕСЬ
+    log('[AI]: Модуль ИИ-аналитики вернули в строй! Лифт всё ещё на реставрации, но мы справляемся.');
+    log('[AI]: Отправляем запрос в нейросеть... Ждите.');
+    btnAi.disabled = true;
+
+    // 1. Создаем Issue на GitHub
+    fetch('https://api.github.com/repos/node-root-core/node-root-core.github.io/issues', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: '[AI] Запрос на анализ',
+        body: text
+      })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data.number) throw new Error(data.message || 'Ошибка создания Issue. Проверь токен.');
+      var issueNumber = data.number;
+      log('[AI]: Задача #' + issueNumber + ' принята. Ждем ответа робота...');
+
+      // 2. Начинаем опрос файла с ответом
+      var pollInterval = setInterval(function() {
+        fetch('./ai_answer.json?_=' + Date.now(), { cache: 'no-store' })
+          .then(function(res) { return res.json(); })
+          .then(function(answerData) {
+            if (answerData.issue_number === issueNumber) {
+              clearInterval(pollInterval);
+              log('[AI]: Ответ получен!');
+              
+              // ШУТКА ПРО ЛИФТ В ОКНЕ ОТВЕТА
+              alert('🤖 Аналитик говорит:\n\n' + answerData.answer + '\n\n(P.S. Лифт по-прежнему не работает.)');
+              aiInput.value = '';
+              btnAi.disabled = false;
+            }
+          })
+          .catch(function() { /* Файл еще не создан, ждем */ });
+      }, 3000); // Проверяем каждые 3 секунды
+
+      // 3. Таймаут, если робот упал
+      setTimeout(function() {
+        clearInterval(pollInterval);
+        if (btnAi.disabled) {
+          btnAi.disabled = false;
+          log('[AI ERROR]: Робот не ответил за 40 секунд. Возможно, API перегружен.', 'error');
+        }
+      }, 40000);
+    })
+    .catch(function(err) {
+      btnAi.disabled = false;
+      log('[AI ERROR]: ' + err.message, 'error');
+      alert('Ошибка: ' + err.message);
+    });
+  });
   /* ============ СТАРТ ============ */
    /* ============ МИРОВОЕ ВРЕМЯ И ДАТЫ ============ */
   function updateClocks() {
