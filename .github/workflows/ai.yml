@@ -1,0 +1,68 @@
+name: AI Analyst
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  analyze:
+    if: startsWith(github.event.issue.title, '[AI]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get AI Response
+        env:
+          USER_TEXT: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python3 - <<'PY'
+          import os, json, urllib.request
+          
+          # Используем KeylessAI (без ключей и регистраций)
+          url = "https://keylessai.thryx.workers.dev/v1/chat/completions"
+          
+          data = {
+              "model": "gpt-4o",
+              "messages": [
+                  {"role": "system", "content": "Ты — саркастичный ИИ-аналитик с сайта 'Академия без ашибок'. Твоя задача — проанализировать текст, найти в нем абсурд, пропаганду или экономическую неграмотность, и ответить кратко, остроумно и на русском языке."},
+                  {"role": "user", "content": os.environ.get('USER_TEXT', 'Нет текста')}
+              ],
+              "temperature": 0.7
+          }
+          
+          req = urllib.request.Request(
+              url,
+              data=json.dumps(data).encode('utf-8'),
+              headers={"Content-Type": "application/json"}
+          )
+          
+          try:
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  result = json.loads(response.read().decode('utf-8'))
+                  answer = result['choices'][0]['message']['content']
+          except Exception as e:
+              answer = f"Ошибка нейросети: {e}"
+          
+          out_data = {
+              "issue_number": int(os.environ.get('ISSUE_NUMBER')),
+              "answer": answer
+          }
+          with open('ai_answer.json', 'w', encoding='utf-8') as f:
+              json.dump(out_data, f, ensure_ascii=False, indent=2)
+          PY
+
+      - name: Commit answer and close issue
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ai_answer.json
+          git diff --staged --quiet || git commit -m "AI Answer for issue #${{ github.event.issue.number }}"
+          git push
+          
+          gh issue close ${{ github.event.issue.number }} -c "Анализ завершен."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
