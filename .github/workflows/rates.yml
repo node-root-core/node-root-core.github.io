@@ -2,8 +2,8 @@ name: Update rates
 
 on:
   schedule:
-    - cron: '0 * * * *' # Каждый час
-  workflow_dispatch: # И по кнопке
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   update:
@@ -16,13 +16,12 @@ jobs:
       - name: Fetch rates and key rate
         run: |
           python3 - <<'PY'
-          import requests, xml.etree.ElementTree as ET, json, datetime, sys
+          import requests, xml.etree.ElementTree as ET, json, datetime, sys, re
 
-          # 1. Скачиваем и парсим курсы валют (с правильной кодировкой)
+          # 1. Курсы валют (с правильной кодировкой)
           try:
-              resp = requests.get('https://www.cbr.ru/scripts/XML_daily.asp')
+              resp = requests.get('https://www.cbr.ru/scripts/XML_daily.asp', timeout=10)
               resp.raise_for_status()
-              # ЦБ отдает windows-1251, декодируем явно
               xml_data = resp.content.decode('windows-1251')
               root = ET.fromstring(xml_data)
               
@@ -39,14 +38,22 @@ jobs:
               print(f"Ошибка при парсинге курсов: {e}")
               sys.exit(1)
 
-          # 2. Скачиваем ключевую ставку
+          # 2. Ключевая ставка (с фолбэком)
+          key_rate = 21.0 # Дефолтное значение на случай, если API сломается
           try:
-              kr_resp = requests.get('https://www.cbr-xml-daily.ru/keyrate.json')
+              kr_resp = requests.get('https://www.cbr-xml-daily.ru/keyrate.json', timeout=10)
               kr_resp.raise_for_status()
-              key_rate = kr_resp.json().get('rate')
+              rate_val = kr_resp.json().get('rate')
+              if rate_val: key_rate = rate_val
           except Exception as e:
-              print(f"Ошибка при получении ставки: {e}")
-              key_rate = None # Не роняем весь скрипт, просто не будет ставки
+              print(f"Ошибка при получении ставки из JSON: {e}. Пробуем официальный сайт...")
+              try:
+                  html = requests.get('https://www.cbr.ru/hd_base/KeyRate/', timeout=10).text
+                  # Ищем ставку в HTML (регулярка ищет дату, а следом за ней число с запятой)
+                  match = re.search(r'<td>\d{2}\.\d{2}\.\d{4}</td>\s*<td>(\d+,\d+)</td>', html)
+                  if match: key_rate = float(match.group(1).replace(',', '.'))
+              except Exception as e2:
+                  print(f"Не удалось спарсить HTML: {e2}. Оставляем 21.0%")
 
           # 3. Сохраняем
           rate_data = {
@@ -58,7 +65,7 @@ jobs:
           }
           with open('rates.json', 'w', encoding='utf-8') as f:
               json.dump(rate_data, f, ensure_ascii=False, indent=2)
-          print("Успех! Данные сохранены.")
+          print(f"Успех! Ставка: {key_rate}%, USD: {usd}, EUR: {eur}")
           PY
 
       - name: Commit rates.json
@@ -66,5 +73,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add rates.json
-          git diff --staged --quiet || git commit -m "Auto-update rates and key rate from CBR"
+          git diff --staged --quiet || git commit -m "Auto-update rates and key rate"
           git push
