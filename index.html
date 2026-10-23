@@ -657,6 +657,11 @@
 
         originalUsd = usdRate;
         originalEur = eurRate;
+                var keyRateEl = document.getElementById('key-rate');
+        if (data.key_rate && keyRateEl) {
+          originalKeyRate = data.key_rate;
+          keyRateEl.textContent = data.key_rate + '%';
+        }
 
         renderRate(usdEl, usdRate, 'prev_usd');
         renderRate(eurEl, eurRate, 'prev_eur');
