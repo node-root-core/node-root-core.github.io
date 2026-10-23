@@ -13,10 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch rates from CBR
+      - name: Fetch rates and key rate
         run: |
-          # Скачиваем XML с официального сайта ЦБ РФ
+          # Скачиваем XML с курсами валют
           curl -sS "https://www.cbr.ru/scripts/XML_daily.asp" -o rates.xml
+          # Скачиваем JSON с ключевой ставкой
+          curl -sS "https://www.cbr-xml-daily.ru/keyrate.json" -o keyrate.json
 
       - name: Build rates.json
         run: |
@@ -25,31 +27,29 @@ jobs:
           import json, datetime, sys
           
           try:
+              # Парсим валюты
               tree = ET.parse('rates.xml')
               root = tree.getroot()
-              
               usd = None
               eur = None
-              
-              # Ищем валюты в XML
               for valute in root.findall('Valute'):
                   char_code = valute.find('CharCode').text
                   value = valute.find('Value').text.replace(',', '.')
                   nominal = int(valute.find('Nominal').text)
-                  
-                  # Считаем курс за 1 единицу
                   rate = round(float(value) / nominal, 2)
-                  
                   if char_code == 'USD': usd = rate
                   if char_code == 'EUR': eur = rate
-                  
-              if not usd or not eur:
-                  raise ValueError("Не найдены USD или EUR в XML")
+              
+              # Парсим ключевую ставку
+              with open('keyrate.json', 'r', encoding='utf-8') as f:
+                  keyrate_data = json.load(f)
+              key_rate = keyrate_data.get('rate')
                   
               rate_data = {
                   'updated': datetime.datetime.utcnow().isoformat() + 'Z',
                   'usd': usd,
                   'eur': eur,
+                  'key_rate': key_rate,
                   'source': 'CBR'
               }
               
@@ -60,12 +60,12 @@ jobs:
               print(f"Ошибка: {e}")
               sys.exit(1)
           PY
-          rm rates.xml
+          rm rates.xml keyrate.json
 
       - name: Commit rates.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add rates.json
-          git diff --staged --quiet || git commit -m "Auto-update rates from CBR"
+          git diff --staged --quiet || git commit -m "Auto-update rates and key rate from CBR"
           git push
