@@ -15,23 +15,18 @@ jobs:
 
       - name: Fetch rates and key rate
         run: |
-          # Скачиваем XML с курсами валют
-          curl -sS "https://www.cbr.ru/scripts/XML_daily.asp" -o rates.xml
-          # Скачиваем JSON с ключевой ставкой
-          curl -sS "https://www.cbr-xml-daily.ru/keyrate.json" -o keyrate.json
-
-      - name: Build rates.json
-        run: |
           python3 - <<'PY'
-          import xml.etree.ElementTree as ET
-          import json, datetime, sys
-          
+          import requests, xml.etree.ElementTree as ET, json, datetime, sys
+
+          # 1. Скачиваем и парсим курсы валют (с правильной кодировкой)
           try:
-              # Парсим валюты
-              tree = ET.parse('rates.xml')
-              root = tree.getroot()
-              usd = None
-              eur = None
+              resp = requests.get('https://www.cbr.ru/scripts/XML_daily.asp')
+              resp.raise_for_status()
+              # ЦБ отдает windows-1251, декодируем явно
+              xml_data = resp.content.decode('windows-1251')
+              root = ET.fromstring(xml_data)
+              
+              usd = eur = None
               for valute in root.findall('Valute'):
                   char_code = valute.find('CharCode').text
                   value = valute.find('Value').text.replace(',', '.')
@@ -39,28 +34,32 @@ jobs:
                   rate = round(float(value) / nominal, 2)
                   if char_code == 'USD': usd = rate
                   if char_code == 'EUR': eur = rate
-              
-              # Парсим ключевую ставку
-              with open('keyrate.json', 'r', encoding='utf-8') as f:
-                  keyrate_data = json.load(f)
-              key_rate = keyrate_data.get('rate')
-                  
-              rate_data = {
-                  'updated': datetime.datetime.utcnow().isoformat() + 'Z',
-                  'usd': usd,
-                  'eur': eur,
-                  'key_rate': key_rate,
-                  'source': 'CBR'
-              }
-              
-              with open('rates.json', 'w', encoding='utf-8') as f:
-                  json.dump(rate_data, f, ensure_ascii=False, indent=2)
-                  
+              if not usd or not eur: raise ValueError("Нет USD/EUR")
           except Exception as e:
-              print(f"Ошибка: {e}")
+              print(f"Ошибка при парсинге курсов: {e}")
               sys.exit(1)
+
+          # 2. Скачиваем ключевую ставку
+          try:
+              kr_resp = requests.get('https://www.cbr-xml-daily.ru/keyrate.json')
+              kr_resp.raise_for_status()
+              key_rate = kr_resp.json().get('rate')
+          except Exception as e:
+              print(f"Ошибка при получении ставки: {e}")
+              key_rate = None # Не роняем весь скрипт, просто не будет ставки
+
+          # 3. Сохраняем
+          rate_data = {
+              'updated': datetime.datetime.utcnow().isoformat() + 'Z',
+              'usd': usd,
+              'eur': eur,
+              'key_rate': key_rate,
+              'source': 'CBR'
+          }
+          with open('rates.json', 'w', encoding='utf-8') as f:
+              json.dump(rate_data, f, ensure_ascii=False, indent=2)
+          print("Успех! Данные сохранены.")
           PY
-          rm rates.xml keyrate.json
 
       - name: Commit rates.json
         run: |
