@@ -16,17 +16,18 @@ jobs:
 
       - name: Get AI Response
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER_TEXT: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           python3 - <<'PY'
           import os, json, urllib.request
           
-          # Используем KeylessAI (без ключей и регистраций)
-          url = "https://keylessai.thryx.workers.dev/v1/chat/completions"
+          # Используем официальный GitHub Models (надежно, без ключей)
+          url = "https://models.inference.ai.azure.com/chat/completions"
           
           data = {
-              "model": "gpt-4o",
+              "model": "gpt-4o", 
               "messages": [
                   {"role": "system", "content": "Ты — саркастичный ИИ-аналитик с сайта 'Академия без ашибок'. Твоя задача — проанализировать текст, найти в нем абсурд, пропаганду или экономическую неграмотность, и ответить кратко, остроумно и на русском языке."},
                   {"role": "user", "content": os.environ.get('USER_TEXT', 'Нет текста')}
@@ -37,11 +38,14 @@ jobs:
           req = urllib.request.Request(
               url,
               data=json.dumps(data).encode('utf-8'),
-              headers={"Content-Type": "application/json"}
+              headers={
+                  "Authorization": "Bearer " + os.environ.get('GITHUB_TOKEN'),
+                  "Content-Type": "application/json"
+              }
           )
           
           try:
-              with urllib.request.urlopen(req, timeout=30) as response:
+              with urllib.request.urlopen(req, timeout=40) as response:
                   result = json.loads(response.read().decode('utf-8'))
                   answer = result['choices'][0]['message']['content']
           except Exception as e:
@@ -64,5 +68,3 @@ jobs:
           git push
           
           gh issue close ${{ github.event.issue.number }} -c "Анализ завершен."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
