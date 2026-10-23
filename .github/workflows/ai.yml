@@ -16,35 +16,33 @@ jobs:
 
       - name: Get AI Response
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER_TEXT: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           python3 - <<'PY'
-          import os, json, urllib.request
+          import os, json, urllib.request, urllib.parse
           
-          # Используем официальный GitHub Models (надежно, без ключей)
-          url = "https://models.inference.ai.azure.com/chat/completions"
+          prompt = os.environ.get('USER_TEXT', 'Нет текста')
+          
+          # Используем Pollinations.ai (полностью бесплатно, без ключей)
+          url = "https://text.pollinations.ai/openai"
           
           data = {
-              "model": "gpt-4o", 
+              "model": "openai",
               "messages": [
                   {"role": "system", "content": "Ты — саркастичный ИИ-аналитик с сайта 'Академия без ашибок'. Твоя задача — проанализировать текст, найти в нем абсурд, пропаганду или экономическую неграмотность, и ответить кратко, остроумно и на русском языке."},
-                  {"role": "user", "content": os.environ.get('USER_TEXT', 'Нет текста')}
-              ],
-              "temperature": 0.7
+                  {"role": "user", "content": prompt}
+              ]
           }
           
           req = urllib.request.Request(
               url,
               data=json.dumps(data).encode('utf-8'),
-              headers={
-                  "Authorization": "Bearer " + os.environ.get('GITHUB_TOKEN'),
-                  "Content-Type": "application/json"
-              }
+              headers={"Content-Type": "application/json"}
           )
           
           try:
+              # Ждем ответ до 40 секунд
               with urllib.request.urlopen(req, timeout=40) as response:
                   result = json.loads(response.read().decode('utf-8'))
                   answer = result['choices'][0]['message']['content']
