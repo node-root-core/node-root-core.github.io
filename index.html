@@ -656,10 +656,11 @@
 
         originalUsd = usdRate;
         originalEur = eurRate;
-                var keyRateEl = document.getElementById('key-rate');
-        if (data.key_rate && keyRateEl) {
-          originalKeyRate = data.key_rate;
-          keyRateEl.textContent = data.key_rate + '%';
+        var keyRateEl = document.getElementById('key-rate');
+        if (keyRateEl) {
+          // Если ставка не пришла, ставим 21%, чтобы все работало
+          originalKeyRate = data.key_rate ? data.key_rate : 21;
+          keyRateEl.textContent = originalKeyRate + '%';
         }
 
         renderRate(usdEl, usdRate, 'prev_usd');
