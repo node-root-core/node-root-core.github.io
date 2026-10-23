@@ -694,13 +694,17 @@
     log('[CRITICAL]: Запущен печатный станок МВФ! Запускаем гиперинфляцию...', 'panic');
     document.body.classList.add('panic');
 
-    var counter = 100;
+      var counter = 100;
+    var rateCounter = originalKeyRate ? parseFloat(originalKeyRate) : 21; 
     var ticks = 0;
+    
     var interval = setInterval(function () {
       counter = counter * 1.35 + 137;
+      rateCounter = rateCounter * 1.15 + 10;
       ticks++;
 
       var val = Math.floor(counter).toLocaleString('ru-RU');
+      var rateVal = Math.floor(rateCounter).toLocaleString('ru-RU');
 
       usdEl.innerHTML = '';
       eurEl.innerHTML = '';
@@ -710,9 +714,12 @@
       eurEl.classList.add('up');
       usdEl.textContent = val + ' ₽ ▲';
       eurEl.textContent = val + ' ₽ ▲';
+      
+      var keyRateEl = document.getElementById('key-rate');
+      if (keyRateEl) keyRateEl.textContent = rateVal + '%';
 
       if (ticks % 10 === 0) {
-        log('[IMF]: USD/RUB = ' + val + ' ₽', 'panic');
+        log('[IMF]: USD/RUB = ' + val + ' ₽ | Ставка ЦБ = ' + rateVal + '%', 'panic');
       }
     }, 60);
 
