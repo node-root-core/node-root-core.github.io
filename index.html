@@ -864,7 +864,7 @@
           btnAi.disabled = false;
           log('[AI ERROR]: Робот не ответил за 40 секунд. Возможно, API перегружен.', 'error');
         }
-      }, 40000);
+      }, 90000);
     })
     .catch(function(err) {
       btnAi.disabled = false;
