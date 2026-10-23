@@ -733,6 +733,12 @@
         if (originalUsd !== null) renderRate(usdEl, originalUsd, 'prev_usd');
         if (originalEur !== null) renderRate(eurEl, originalEur, 'prev_eur');
 
+        // Сброс ставки
+        var keyRateEl = document.getElementById('key-rate');
+        if (originalKeyRate !== null && keyRateEl) {
+          keyRateEl.textContent = originalKeyRate + '%';
+        }
+        
         log('[RESET]: Печатный станок остановлен. Возвращаемся к реальным котировкам.');
         printActive = false;
         btnPrint.disabled = false;
