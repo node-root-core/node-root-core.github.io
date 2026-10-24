@@ -729,26 +729,38 @@
       var issueNumber = data.number;
       log('[AI]: Задача #' + issueNumber + ' принята. Ждем ответа робота...');
       var pollInterval = setInterval(function() {
-        fetch('https://raw.githubusercontent.com/node-root-core/node-root-core.github.io/main/ai_answer.json?_=' + Date.now(), { cache: 'no-store' })
-          .then(function(res) { return res.json(); })
-          .then(function(answerData) {
-            if (answerData.issue_number === issueNumber) {
-              clearInterval(pollInterval);
-              log('[AI]: Ответ получен!');
-              alert('🤖 Аналитик говорит:\n\n' + answerData.answer + '\n\n(P.S. Лифт по-прежнему не работает.)');
-              aiInput.value = '';
-              btnAi.disabled = false;
-            }
-          })
-          .catch(function() { /* Файл еще не создан, ждем */ });
+        // Читаем НАПРЯМУЮ через официальный GitHub API (без костылей и CORS-ошибок)
+        fetch('https://api.github.com/repos/node-root-core/node-root-core.github.io/contents/ai_answer.json?ref=main', {
+          headers: {
+            'Authorization': 'token ' + token,
+            'Accept': 'application/vnd.github.v3.raw' // Возвращает чистый JSON, а не base64
+          }
+        })
+        .then(function(res) {
+          if (res.status === 404) return null; // Файл еще не создан роботом, это нормально, ждем
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function(answerData) {
+          if (answerData && answerData.issue_number === issueNumber) {
+            clearInterval(pollInterval);
+            log('[AI]: Ответ получен напрямую из репозитория!');
+            alert('🤖 Аналитик говорит:\n\n' + answerData.answer + '\n\n(P.S. Лифт по-прежнему не работает.)');
+            aiInput.value = '';
+            btnAi.disabled = false;
+          }
+        })
+        .catch(function() {
+          // Игнорируем ошибки сети или 404, просто ждем следующие 3 секунды
+        });
       }, 3000);
 
-      // ИСПРАВЛЕНО: Таймаут увеличен до 180000 мс (3 минуты) для стабильности на зеркалах
+      // Таймаут 3 минуты (180000 мс)
       setTimeout(function() {
         clearInterval(pollInterval);
         if (btnAi.disabled) {
           btnAi.disabled = false;
-          log('[AI ERROR]: Робот не ответил за 3 минуты. Возможно, GitHub Pages еще пересобирается.', 'error');
+          log('[AI ERROR]: Робот не ответил за 3 минуты.', 'error');
         }
       }, 180000);
     })
