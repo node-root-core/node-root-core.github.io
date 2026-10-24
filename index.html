@@ -1033,7 +1033,8 @@
     if (notes.length === 0) { notesList.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Пока пусто...</div>'; return; }
     notes.forEach(function(note, index) {
       var div = document.createElement('div');
-      div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--card-border);';
+      var isLight = document.body.classList.contains('light-theme');
+div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: ' + (isLight ? '#f0f2f5' : '#0d1117') + '; padding: 10px; border-radius: 6px; border: 1px solid var(--card-border);';
       var checkbox = document.createElement('input');
       checkbox.type = 'checkbox'; checkbox.checked = note.done; checkbox.style.cursor = 'pointer'; checkbox.style.accentColor = 'var(--accent)';
       checkbox.onchange = function() { note.done = checkbox.checked; saveNotes(notes); };
