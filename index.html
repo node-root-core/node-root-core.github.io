@@ -213,7 +213,7 @@
   .rate-label { color: var(--muted); font-size: 0.85rem; }
 
   .rate-value {
-    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* Жестко задаем шрифт */
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
     font-size: 2rem;
     font-weight: bold;
     color: var(--text);
@@ -347,7 +347,9 @@
 
 <header>
   <h1>АКАДЕМИЯ БЕЗ <span style="color: var(--danger);">А</span>ШИБОК</h1>
-  <p class="subtitle">«Идентификаторы здравого смысла в условиях глобального бездорожья»</p></header>
+  <!-- ИСПРАВЛЕНО: Индификаторы -> Идентификаторы -->
+  <p class="subtitle">«Идентификаторы здравого смысла в условиях глобального бездорожья»</p>
+</header>
 
 <div class="grid">
 
@@ -376,18 +378,16 @@
         <span class="rate-label">EUR / RUB</span>
         <span class="rate-value" id="eur">—</span>
       </div>
-       <!-- ВОТ ЭТА СТРОКА -->
       <div class="rate-row">
         <span class="rate-label">Ключевая ставка</span>
         <span class="rate-value" id="key-rate" style="font-size: 1.5rem; color: var(--danger);">—</span>
       </div>
-
-    </div> <!-- Закрытие rates -->
+    </div>
     <div class="controls">
       <button id="btn-print" disabled>🖨 ПЕЧАТНЫЙ СТАНОК МВФ</button>
     </div>
   </div>
-   <!-- МИРОВОЕ ВРЕМЯ -->
+
   <div class="card full-width">
     <h2>🌍 Мировые часы</h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; text-align: center;">
@@ -421,13 +421,13 @@
       </div>
     </div>
   </div>
-    <!-- ГОСДОЛГ США -->
+
   <div class="card full-width">
     <h2>💸 Госдолг США (реальное время)</h2>
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 2rem; color: var(--danger); font-weight: bold; text-align: center; padding: 10px 0;" id="us-debt">$ --</div>
     <div style="text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: -10px;">Обновляется из Минфина США раз в час. В реальном времени цифра растет на ~$100,000 каждую секунду.</div>
   </div>
-    <!-- ПУЛЬС РУНЕТА -->
+
   <div class="card full-width">
     <h2>🚦 Пульс Рунета (взгляд из США)</h2>
     <div id="pulse-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; padding: 10px 0;">
@@ -435,28 +435,22 @@
     </div>
     <div style="text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 5px;">🟢 Доступен из США | 🔴 Заблокирован или недоступен</div>
   </div>  
-  <!-- БЛОКНОТ -->
+
   <div class="card full-width">
     <h2>📝 Блокнот</h2>
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
       <input type="text" id="note-input" placeholder="Что нужно сделать?" style="flex: 1; background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; outline: none;">
       <button id="btn-add-note" style="width: auto; padding: 10px 20px;">+</button>
     </div>
-    <div id="notes-list" style="display: flex; flex-direction: column; gap: 10px;">
-      <!-- Сюда будут падать заметки -->
-    </div>
+    <div id="notes-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
     <div class="controls" style="margin-top: 15px;">
       <button id="btn-clear-done" class="danger" style="font-size: 0.75rem; padding: 10px;">Удалить выполненные</button>
     </div>
   </div>
+
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
-    <iframe
-      class="terminal-frame"
-      id="terminal"
-      src="https://cli.h2.nexus"
-      loading="lazy"
-      title="Окошко в Европу"></iframe>
+    <iframe class="terminal-frame" id="terminal" src="https://cli.h2.nexus" loading="lazy" title="Окошко в Европу"></iframe>
     <p class="caption" id="europe-caption">🌱 Окошко в Европу на 15 минут</p>
     <div class="controls">
       <button id="btn-cord" class="danger">🪢 ДЁРНУТЬ ЗА ШНУРОК</button>
@@ -516,39 +510,20 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  /* ============ ПОГОДА из weather.json (генерируется GitHub Actions) ============ */
-  var CITY_IDS = {
-    'weather-kondrovo': 'kondrovo',
-    'weather-zavod':    'zavod'
-  };
-  var CITY_NAMES = {
-    'weather-kondrovo': 'Кондрово',
-    'weather-zavod':    'Полотняный Завод'
-  };
+  /* ============ ПОГОДА ============ */
+  var CITY_IDS = { 'weather-kondrovo': 'kondrovo', 'weather-zavod': 'zavod' };
+  var CITY_NAMES = { 'weather-kondrovo': 'Кондрово', 'weather-zavod': 'Полотняный Завод' };
 
   function symbolToText(code) {
     if (!code) return '—';
     var base = code.replace(/_(day|night|polartwilight)$/, '');
     var map = {
-      'clearsky':          'Ясно',
-      'fair':              'Преимущественно ясно',
-      'partlycloudy':      'Переменная облачность',
-      'cloudy':            'Облачно',
-      'fog':               'Туман',
-      'lightrain':         'Небольшой дождь',
-      'rain':              'Дождь',
-      'heavyrain':         'Сильный дождь',
-      'lightrainshowers':  'Небольшой ливень',
-      'rainshowers':       'Ливень',
-      'heavyrainshowers':  'Сильный ливень',
-      'lightsnow':         'Небольшой снег',
-      'snow':              'Снег',
-      'heavysnow':         'Сильный снег',
-      'lightsleet':        'Небольшой мокрый снег',
-      'sleet':             'Мокрый снег',
-      'rainandthunder':    'Дождь с грозой',
-      'snowandthunder':    'Снег с грозой',
-      'thunderstorm':      'Гроза'
+      'clearsky': 'Ясно', 'fair': 'Преимущественно ясно', 'partlycloudy': 'Переменная облачность',
+      'cloudy': 'Облачно', 'fog': 'Туман', 'lightrain': 'Небольшой дождь', 'rain': 'Дождь',
+      'heavyrain': 'Сильный дождь', 'lightrainshowers': 'Небольшой ливень', 'rainshowers': 'Ливень',
+      'heavyrainshowers': 'Сильный ливень', 'lightsnow': 'Небольшой снег', 'snow': 'Снег',
+      'heavysnow': 'Сильный снег', 'lightsleet': 'Небольшой мокрый снег', 'sleet': 'Мокрый снег',
+      'rainandthunder': 'Дождь с грозой', 'snowandthunder': 'Снег с грозой', 'thunderstorm': 'Гроза'
     };
     return map[base] || code;
   }
@@ -557,19 +532,14 @@
     var box = document.getElementById(id);
     var name = CITY_NAMES[id];
     if (!box) return;
-
     if (!entry) {
-      box.innerHTML =
-        '<div class="weather-city-title">• ' + name + '</div>' +
-        '<div class="weather-error">⚠ Спутник недоступен</div>';
+      box.innerHTML = '<div class="weather-city-title">• ' + name + '</div><div class="weather-error">⚠ Спутник недоступен</div>';
       return;
     }
-
     var det = entry.data.instant.details;
     var temp = Math.round(det.air_temperature);
     var wind = det.wind_speed;
     var humidity = det.relative_humidity;
-
     var code = null;
     if (entry.data.next_1_hours && entry.data.next_1_hours.summary) {
       code = entry.data.next_1_hours.summary.symbol_code;
@@ -577,9 +547,7 @@
       code = entry.data.next_6_hours.summary.symbol_code;
     }
     var desc = symbolToText(code);
-
-    box.innerHTML =
-      '<div class="weather-city-title">• ' + name + '</div>' +
+    box.innerHTML = '<div class="weather-city-title">• ' + name + '</div>' +
       '<div class="weather-temp">' + temp + '°C</div>' +
       '<div class="weather-desc">' + desc + '</div>' +
       '<div class="weather-extra">💨 ' + wind + ' м/с &nbsp; 💧 ' + humidity + '%</div>';
@@ -587,24 +555,15 @@
 
   function loadAllWeather() {
     fetch('./weather.json?_=' + Date.now(), { cache: 'no-store' })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(function (data) {
-        for (var id in CITY_IDS) {
-          if (CITY_IDS.hasOwnProperty(id)) {
-            renderCity(id, data[CITY_IDS[id]]);
-          }
-        }
+        for (var id in CITY_IDS) { if (CITY_IDS.hasOwnProperty(id)) renderCity(id, data[CITY_IDS[id]]); }
         var when = data.updated ? data.updated.slice(11, 16) + ' UTC' : '?';
         log('[WEATHER]: данные получены (обновлено ' + when + ')');
       })
       .catch(function (err) {
         log('[WEATHER ERROR]: не удалось прочитать weather.json — ' + err.message, 'error');
-        for (var id in CITY_IDS) {
-          if (CITY_IDS.hasOwnProperty(id)) renderCity(id, null);
-        }
+        for (var id in CITY_IDS) { if (CITY_IDS.hasOwnProperty(id)) renderCity(id, null); }
       });
   }
 
@@ -616,23 +575,15 @@
       if (stored !== null) previous = parseFloat(stored);
       localStorage.setItem(storageKey, value);
     } catch(e) {}
-
     var current = parseFloat(value);
-
     el.innerHTML = '';
     el.classList.remove('up', 'down');
     el.textContent = value + ' ₽';
-
     if (previous !== null && !isNaN(previous) && previous !== current) {
       var arrow = document.createElement('span');
       arrow.className = 'rate-arrow';
-      if (current > previous) {
-        el.classList.add('up');
-        arrow.textContent = '▲';
-      } else {
-        el.classList.add('down');
-        arrow.textContent = '▼';
-      }
+      if (current > previous) { el.classList.add('up'); arrow.textContent = '▲'; } 
+      else { el.classList.add('down'); arrow.textContent = '▼'; }
       el.appendChild(arrow);
     }
   }
@@ -640,34 +591,23 @@
   function loadCurrency() {
     currencyReady = false;
     btnPrint.disabled = true;
-
-    // Читаем локальный файл rates.json, который создал робот
     fetch('./rates.json?_=' + Date.now(), { cache: 'no-store' })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(function (data) {
         if (!data || !data.usd || !data.eur) throw new Error('Нет данных в rates.json');
-
         var usdRate = data.usd.toString();
         var eurRate = data.eur.toString();
-
         originalUsd = usdRate;
         originalEur = eurRate;
         var keyRateEl = document.getElementById('key-rate');
         if (keyRateEl) {
-          // Если ставка не пришла, ставим 21%, чтобы все работало
           originalKeyRate = data.key_rate ? data.key_rate : 21;
           keyRateEl.textContent = originalKeyRate + '%';
         }
-
         renderRate(usdEl, usdRate, 'prev_usd');
         renderRate(eurEl, eurRate, 'prev_eur');
-
         currencyReady = true;
         btnPrint.disabled = false;
-
         var when = data.updated ? data.updated.slice(11, 16) + ' UTC' : '?';
         log('[RATES]: USD: ' + usdRate + ' ₽ | EUR: ' + eurRate + ' ₽ (ЦБ РФ, обновлено ' + when + ')');
       })
@@ -683,66 +623,41 @@
   /* ============ ПЕЧАТНЫЙ СТАНОК ============ */
   btnPrint.addEventListener('click', function () {
     if (printActive) return;
-    if (!currencyReady) {
-      log('[IMF]: Отказ. Курсы ещё не загружены. Ждём ЦБ.', 'error');
-      return;
-    }
+    if (!currencyReady) { log('[IMF]: Отказ. Курсы ещё не загружены. Ждём ЦБ.', 'error'); return; }
     printActive = true;
     btnPrint.disabled = true;
-
     log('[CRITICAL]: Запущен печатный станок МВФ! Запускаем гиперинфляцию...', 'panic');
     document.body.classList.add('panic');
-
-      var counter = 100;
+    var counter = 100;
     var rateCounter = originalKeyRate ? parseFloat(originalKeyRate) : 21; 
     var ticks = 0;
-    
     var interval = setInterval(function () {
       counter = counter * 1.35 + 137;
       rateCounter = rateCounter * 1.15 + 10;
       ticks++;
-
       var val = Math.floor(counter).toLocaleString('ru-RU');
       var rateVal = Math.floor(rateCounter).toLocaleString('ru-RU');
-
-      usdEl.innerHTML = '';
-      eurEl.innerHTML = '';
-      usdEl.classList.remove('down');
-      eurEl.classList.remove('down');
-      usdEl.classList.add('up');
-      eurEl.classList.add('up');
-      usdEl.textContent = val + ' ₽ ▲';
-      eurEl.textContent = val + ' ₽ ▲';
-      
+      usdEl.innerHTML = ''; eurEl.innerHTML = '';
+      usdEl.classList.remove('down'); eurEl.classList.remove('down');
+      usdEl.classList.add('up'); eurEl.classList.add('up');
+      usdEl.textContent = val + ' ₽ ▲'; eurEl.textContent = val + ' ₽ ▲';
       var keyRateEl = document.getElementById('key-rate');
       if (keyRateEl) keyRateEl.textContent = rateVal + '%';
-
-      if (ticks % 10 === 0) {
-        log('[IMF]: USD/RUB = ' + val + ' ₽ | Ставка ЦБ = ' + rateVal + '%', 'panic');
-      }
+      if (ticks % 10 === 0) log('[IMF]: USD/RUB = ' + val + ' ₽ | Ставка ЦБ = ' + rateVal + '%', 'panic');
     }, 60);
-
     setTimeout(function () {
       clearInterval(interval);
       document.body.classList.remove('panic');
       log('[IMF]: КРИТИЧЕСКИЙ УРОВЕНЬ ДОЛГА ДОСТИГНУТ', 'panic');
-
       setTimeout(function () {
         alert('Коллега, выключите станок! Мы летим в выгребную яму долга на 100 триллионов долларов!');
-
         if (originalUsd !== null) renderRate(usdEl, originalUsd, 'prev_usd');
         if (originalEur !== null) renderRate(eurEl, originalEur, 'prev_eur');
-
-        // Сброс ставки
         var keyRateEl = document.getElementById('key-rate');
-        if (originalKeyRate !== null && keyRateEl) {
-          keyRateEl.textContent = originalKeyRate + '%';
-        }
-        
+        if (originalKeyRate !== null && keyRateEl) keyRateEl.textContent = originalKeyRate + '%';
         log('[RESET]: Печатный станок остановлен. Возвращаемся к реальным котировкам.');
         printActive = false;
         btnPrint.disabled = false;
-
         loadCurrency();
       }, 250);
     }, 4000);
@@ -753,20 +668,15 @@
     if (cordActive) return;
     cordActive = true;
     btnCord.disabled = true;
-
     log('[FALL]: Пол провалился! 🚽 Унитазы и 🗑️ кучки мусора летят по ржавой трубе внутри приборной панели!', 'fall');
-
     terminal.style.transform = 'scale(0.92) skewY(4deg)';
     terminal.style.borderColor = 'var(--danger)';
     terminal.style.boxShadow = '0 0 24px rgba(231, 76, 60, 0.35)';
-
     setTimeout(function () {
       alert('А мы не едем, шеф. Мы летим... Прямиком в кондровский буфер обмена!');
-
       terminal.style.transform = '';
       terminal.style.borderColor = 'var(--accent)';
       terminal.style.boxShadow = '';
-
       log('[RESET]: Буфер очищен. Локальный космолёт выровнял курс.', 'reset');
       cordActive = false;
       btnCord.disabled = false;
@@ -776,24 +686,17 @@
   /* ============ СЕКРЕТ ============ */
   var captionClicks = 0;
   var captionTimer = null;
-
   caption.addEventListener('click', function () {
     captionClicks++;
     clearTimeout(captionTimer);
     captionTimer = setTimeout(function () { captionClicks = 0; }, 2000);
-
     if (captionClicks === 5) {
       captionClicks = 0;
       clearTimeout(captionTimer);
-
       document.body.classList.add('flash');
       setTimeout(function () { document.body.classList.remove('flash'); }, 200);
-
       log('[SECRET]: Скажу вам по секрету, коллега, хорошо, что мы страшно далеки от народа! Ложись! Брошен череп', 'secret');
-
-      setTimeout(function () {
-        alert('Понял. Ложись! *звук упавшего черепа*');
-      }, 220);
+      setTimeout(function () { alert('Понял. Ложись! *звук упавшего черепа*'); }, 220);
     }
   });
 
@@ -805,40 +708,26 @@
       alert('Коллега, ты забыл вставить текст. Пустота — не повод для анализа.');
       return;
     }
-
-    // Запрашиваем токен один раз и сохраняем в браузере
     var token = localStorage.getItem('gh_token');
     if (!token) {
       token = prompt('Введи свой GitHub PAT (созданный для Issues). Он сохранится в браузере, и больше ты его не увидишь.');
       if (!token) return;
       localStorage.setItem('gh_token', token);
     }
-
-    // ШУТКА ПРО ЛИФТ ЗДЕСЬ
     log('[AI]: Модуль ИИ-аналитики вернули в строй! Лифт всё ещё на реставрации, но мы справляемся.');
     log('[AI]: Отправляем запрос в нейросеть... Ждите.');
     btnAi.disabled = true;
 
-    // 1. Создаем Issue на GitHub
     fetch('https://api.github.com/repos/node-root-core/node-root-core.github.io/issues', {
       method: 'POST',
-      headers: {
-        'Authorization': 'token ' + token,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        title: '[AI] Запрос на анализ',
-        body: text
-      })
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: '[AI] Запрос на анализ', body: text })
     })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (!data.number) throw new Error(data.message || 'Ошибка создания Issue. Проверь токен.');
       var issueNumber = data.number;
       log('[AI]: Задача #' + issueNumber + ' принята. Ждем ответа робота...');
-
-      // 2. Начинаем опрос файла с ответом
       var pollInterval = setInterval(function() {
         fetch('./ai_answer.json?_=' + Date.now(), { cache: 'no-store' })
           .then(function(res) { return res.json(); })
@@ -846,17 +735,15 @@
             if (answerData.issue_number === issueNumber) {
               clearInterval(pollInterval);
               log('[AI]: Ответ получен!');
-              
-              // ШУТКА ПРО ЛИФТ В ОКНЕ ОТВЕТА
               alert('🤖 Аналитик говорит:\n\n' + answerData.answer + '\n\n(P.S. Лифт по-прежнему не работает.)');
               aiInput.value = '';
               btnAi.disabled = false;
             }
           })
           .catch(function() { /* Файл еще не создан, ждем */ });
-      }, 3000); // Проверяем каждые 3 секунды
+      }, 3000);
 
-         // 3. Таймаут, если робот упал (увеличен до 3 минут для стабильности на зеркалах)
+      // ИСПРАВЛЕНО: Таймаут увеличен до 180000 мс (3 минуты) для стабильности на зеркалах
       setTimeout(function() {
         clearInterval(pollInterval);
         if (btnAi.disabled) {
@@ -871,81 +758,43 @@
       alert('Ошибка: ' + err.message);
     });
   });
-  /* ============ СТАРТ ============ */
-   /* ============ МИРОВОЕ ВРЕМЯ И ДАТЫ ============ */
+
+  /* ============ МИРОВОЕ ВРЕМЯ ============ */
   function updateClocks() {
     var clocks = document.querySelectorAll('.world-clock');
     clocks.forEach(function (el) {
       var tz = el.getAttribute('data-tz');
       if (!tz) return;
-
       var now = new Date();
-
-      // 1. Обновляем время
-      var time = new Intl.DateTimeFormat('ru-RU', {
-        timeZone: tz,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }).format(now);
+      var time = new Intl.DateTimeFormat('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
       el.textContent = time;
-
-      // 2. Создаем или находим блок для даты
       var dateEl = el.nextElementSibling;
       if (!dateEl || !dateEl.classList.contains('world-date')) {
         dateEl = document.createElement('div');
         dateEl.className = 'world-date';
-        // Стилизуем дату: мелкий шрифт, серый цвет
         dateEl.style.cssText = 'font-size: 0.65rem; color: var(--muted); margin-top: 2px; font-family: inherit;';
         el.parentNode.insertBefore(dateEl, el.nextSibling);
       }
-
-      // 3. Форматируем дату (например: "чт, 22 окт 2026")
-      var dateStr = new Intl.DateTimeFormat('ru-RU', {
-        timeZone: tz,
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      }).format(now);
-      
+      var dateStr = new Intl.DateTimeFormat('ru-RU', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(now);
       dateEl.textContent = dateStr;
     });
   }
-
   setInterval(updateClocks, 1000);
   updateClocks();
-    /* ============ ГОСДОЛГ США ============ */
+
+  /* ============ ГОСДОЛГ США ============ */
   var debtEl = document.getElementById('us-debt');
   var currentDebt = 0;
   var debtInterval = null;
-
   function loadDebt() {
     fetch('./debt.json?_=' + Date.now(), { cache: 'no-store' })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(function (data) {
         currentDebt = data.amount;
-        
         if (debtInterval) clearInterval(debtInterval);
-        
-        function updateDebtDisplay() {
-          if (debtEl) {
-            debtEl.textContent = '$ ' + Math.floor(currentDebt).toLocaleString('en-US');
-          }
-        }
-        
-        updateDebtDisplay(); // Первый вывод
-        
-        // Прибавляем по 100 000 каждую секунду
-        debtInterval = setInterval(function () {
-          currentDebt += 100000; 
-          updateDebtDisplay();
-        }, 1000);
-        
+        function updateDebtDisplay() { if (debtEl) debtEl.textContent = '$ ' + Math.floor(currentDebt).toLocaleString('en-US'); }
+        updateDebtDisplay();
+        debtInterval = setInterval(function () { currentDebt += 100000; updateDebtDisplay(); }, 1000);
         log('[DEBT]: Госдолг США загружен: $' + Math.floor(currentDebt).toLocaleString('en-US'));
       })
       .catch(function (err) {
@@ -953,119 +802,59 @@
         log('[DEBT ERROR]: ' + err.message, 'error');
       });
   }
-    /* ============ БЛОКНОТ (ЗАМЕТКИ) ============ */
+
+  /* ============ БЛОКНОТ ============ */
   var noteInput = document.getElementById('note-input');
   var btnAddNote = document.getElementById('btn-add-note');
   var notesList = document.getElementById('notes-list');
   var btnClearDone = document.getElementById('btn-clear-done');
-
-  function getNotes() {
-    try { return JSON.parse(localStorage.getItem('my_notes')) || []; } 
-    catch(e) { return []; }
-  }
-
-  function saveNotes(notes) {
-    localStorage.setItem('my_notes', JSON.stringify(notes));
-    renderNotes();
-  }
-
+  function getNotes() { try { return JSON.parse(localStorage.getItem('my_notes')) || []; } catch(e) { return []; } }
+  function saveNotes(notes) { localStorage.setItem('my_notes', JSON.stringify(notes)); renderNotes(); }
   function renderNotes() {
     var notes = getNotes();
     notesList.innerHTML = '';
-    
-    if (notes.length === 0) {
-      notesList.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Пока пусто...</div>';
-      return;
-    }
-
+    if (notes.length === 0) { notesList.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Пока пусто...</div>'; return; }
     notes.forEach(function(note, index) {
       var div = document.createElement('div');
       div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid var(--card-border);';
-      
       var checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = note.done;
-      checkbox.style.cursor = 'pointer';
-      checkbox.style.accentColor = 'var(--accent)';
-      checkbox.onchange = function() {
-        note.done = checkbox.checked;
-        saveNotes(notes);
-      };
-
+      checkbox.type = 'checkbox'; checkbox.checked = note.done; checkbox.style.cursor = 'pointer'; checkbox.style.accentColor = 'var(--accent)';
+      checkbox.onchange = function() { note.done = checkbox.checked; saveNotes(notes); };
       var text = document.createElement('span');
-      text.textContent = note.text;
-      text.style.flex = '1';
-      text.style.fontSize = '0.85rem';
-      if (note.done) {
-        text.style.textDecoration = 'line-through';
-        text.style.color = 'var(--muted)';
-      }
-
+      text.textContent = note.text; text.style.flex = '1'; text.style.fontSize = '0.85rem';
+      if (note.done) { text.style.textDecoration = 'line-through'; text.style.color = 'var(--muted)'; }
       var delBtn = document.createElement('button');
-      delBtn.textContent = '✕';
-      delBtn.style.cssText = 'width: auto; padding: 5px 10px; border: none; color: var(--danger); font-size: 1rem; background: transparent;';
-      delBtn.onclick = function() {
-        notes.splice(index, 1);
-        saveNotes(notes);
-      };
-
-      div.appendChild(checkbox);
-      div.appendChild(text);
-      div.appendChild(delBtn);
-      notesList.appendChild(div);
+      delBtn.textContent = '✕'; delBtn.style.cssText = 'width: auto; padding: 5px 10px; border: none; color: var(--danger); font-size: 1rem; background: transparent;';
+      delBtn.onclick = function() { notes.splice(index, 1); saveNotes(notes); };
+      div.appendChild(checkbox); div.appendChild(text); div.appendChild(delBtn); notesList.appendChild(div);
     });
   }
-
   btnAddNote.addEventListener('click', function() {
-    var text = noteInput.value.trim();
-    if (!text) return;
-    var notes = getNotes();
-    notes.push({ text: text, done: false });
-    noteInput.value = '';
-    saveNotes(notes);
+    var text = noteInput.value.trim(); if (!text) return;
+    var notes = getNotes(); notes.push({ text: text, done: false }); noteInput.value = ''; saveNotes(notes);
   });
+  noteInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') btnAddNote.click(); });
+  btnClearDone.addEventListener('click', function() { var notes = getNotes().filter(function(n) { return !n.done; }); saveNotes(notes); });
+  renderNotes();
 
-  noteInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') btnAddNote.click();
-  });
-
-  btnClearDone.addEventListener('click', function() {
-    var notes = getNotes().filter(function(n) { return !n.done; });
-    saveNotes(notes);
-  });
-
-  renderNotes(); // Первый запуск
-    /* ============ ПУЛЬС РУНЕТА ============ */
+  /* ============ ПУЛЬС РУНЕТА ============ */
   function loadPulse() {
     fetch('./pulse.json?_=' + Date.now(), { cache: 'no-store' })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(function (data) {
         var container = document.getElementById('pulse-container');
         if (!container) return;
-        
         container.innerHTML = '';
         for (var name in data.services) {
           var status = data.services[name];
           var isOk = (status === 'ok');
-          
           var item = document.createElement('div');
           item.style.cssText = 'display: flex; align-items: center; gap: 8px; background: #0d1117; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--card-border);';
-          
           var dot = document.createElement('div');
           dot.style.cssText = 'width: 10px; height: 10px; border-radius: 50%; background: ' + (isOk ? 'var(--accent)' : 'var(--danger)') + '; box-shadow: 0 0 8px ' + (isOk ? 'var(--accent)' : 'var(--danger)') + ';';
-          
-          var text = document.createElement('span');
-          text.textContent = name;
-          text.style.fontSize = '0.8rem';
-          
-          item.appendChild(dot);
-          item.appendChild(text);
-          container.appendChild(item);
+          var text = document.createElement('span'); text.textContent = name; text.style.fontSize = '0.8rem';
+          item.appendChild(dot); item.appendChild(text); container.appendChild(item);
         }
-        
         var when = data.updated ? data.updated.slice(11, 16) + ' UTC' : '?';
         log('[PULSE]: Статусы обновлены (' + when + ')');
       })
@@ -1075,11 +864,12 @@
         log('[PULSE ERROR]: ' + err.message, 'error');
       });
   }
+
   log('[BOOT]: Проверка соединения с rates.json...');
   loadCurrency();
   loadAllWeather();
-  loadDebt(); // <--- ВОТ ЭТА СТРОЧКА ВСЁ ЗАПУСТИТ
-  loadPulse(); // <--- Запуск Пульса
+  loadDebt();
+  loadPulse();
 
 })();
 </script>
