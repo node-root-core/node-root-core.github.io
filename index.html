@@ -636,6 +636,9 @@
     var isLight = document.body.classList.contains('light-theme');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
     btnTheme.textContent = isLight ? '☀️' : '🌓';
+    // ПЕРЕРИСОВЫВАЕМ ЭЛЕМЕНТЫ С НОВЫМИ ЦВЕТАМИ
+    loadPulse();      // Перезагружаем Пульс Рунета
+    renderNotes();    // Перерисовываем Блокнот
   });
 
   // ===== ИСТОРИЯ ИИ =====
