@@ -856,14 +856,14 @@
           .catch(function() { /* Файл еще не создан, ждем */ });
       }, 3000); // Проверяем каждые 3 секунды
 
-      // 3. Таймаут, если робот упал
+         // 3. Таймаут, если робот упал (увеличен до 3 минут для стабильности на зеркалах)
       setTimeout(function() {
         clearInterval(pollInterval);
         if (btnAi.disabled) {
           btnAi.disabled = false;
-          log('[AI ERROR]: Робот не ответил за 40 секунд. Возможно, API перегружен.', 'error');
+          log('[AI ERROR]: Робот не ответил за 3 минуты. Возможно, GitHub Pages еще пересобирается.', 'error');
         }
-      }, 90000);
+      }, 180000);
     })
     .catch(function(err) {
       btnAi.disabled = false;
