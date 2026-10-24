@@ -16,6 +16,124 @@
     --accent-glow: rgba(46, 204, 113, 0.15);
     --danger: #e74c3c;
   }
+    /* Светлая тема */
+  body.light-theme {
+    --bg: #f6f8fa;
+    --card: #ffffff;
+    --card-border: #d0d7de;
+    --text: #1f2328;
+    --muted: #656d76;
+    --accent: #1a7f37;
+    --accent-glow: rgba(26, 127, 55, 0.15);
+    --danger: #cf222e;
+  }
+
+  body.light-theme .weather-list,
+  body.light-theme textarea,
+  body.light-theme .log-panel,
+  body.light-theme #note-input {
+    background: #f0f2f5;
+  }
+
+  body.light-theme .terminal-frame {
+    background: #f0f2f5;
+  }
+
+  /* Кнопка темы */
+  .theme-toggle {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* Блок истории */
+  .history-panel {
+    background: #0d1117;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  body.light-theme .history-panel {
+    background: #f0f2f5;
+  }
+
+  .history-item {
+    border-bottom: 1px dashed var(--card-border);
+    padding: 10px 0;
+    font-size: 0.8rem;
+  }
+
+  .history-item:last-child { border-bottom: none; }
+
+  .history-time {
+    color: var(--muted);
+    font-size: 0.7rem;
+    margin-bottom: 4px;
+  }
+
+  .history-request {
+    color: var(--text);
+    margin-bottom: 6px;
+    word-break: break-word;
+  }
+
+  .history-response {
+    color: var(--accent);
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .history-header h3 {
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn-clear-history {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .btn-clear-history:hover {
+    background: var(--danger);
+    color: var(--bg);
+  }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
