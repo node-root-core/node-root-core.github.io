@@ -729,7 +729,7 @@
       var issueNumber = data.number;
       log('[AI]: Задача #' + issueNumber + ' принята. Ждем ответа робота...');
       var pollInterval = setInterval(function() {
-        fetch('./ai_answer.json?_=' + Date.now(), { cache: 'no-store' })
+        fetch('https://raw.githubusercontent.com/node-root-core/node-root-core.github.io/main/ai_answer.json?_=' + Date.now(), { cache: 'no-store' })
           .then(function(res) { return res.json(); })
           .then(function(answerData) {
             if (answerData.issue_number === issueNumber) {
