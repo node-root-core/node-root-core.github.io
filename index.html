@@ -949,6 +949,7 @@
           if (answerData && answerData.issue_number === issueNumber) {
             clearInterval(pollInterval);
             log('[AI]: Ответ получен напрямую из репозитория!');
+            addToHistory(text, answerData.answer);
             alert('🤖 Аналитик говорит:\n\n' + answerData.answer + '\n\n(P.S. Лифт по-прежнему не работает.)');
             aiInput.value = '';
             btnAi.disabled = false;
