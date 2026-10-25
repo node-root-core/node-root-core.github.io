@@ -557,6 +557,15 @@ body.light-theme #note-input {
     border-style: inset;
     transform: translate(1px, 1px);
   }
+    /* Ретро-стиль для кнопки WinXP */
+  #btn-winxp:hover {
+    background: #d4d0c8;
+    border-style: inset;
+  }
+  #btn-winxp:active {
+    border-style: inset;
+    transform: translate(1px, 1px);
+  }
 </style>
 </head>
 <body>
@@ -759,6 +768,21 @@ body.light-theme #note-input {
       </div>
       <!-- Iframe с эмулятором -->
       <iframe src="https://win98.si/" style="flex: 1; border: none; background: #000;" title="Windows 98 Emulator"></iframe>
+    </div>
+  </div>
+    <!-- Кнопка Windows XP -->
+  <button id="btn-winxp" style="margin-top: 10px; background: #c0c0c0; color: #000; border: 2px outset #fff; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; padding: 8px 16px; font-size: 0.8rem;">
+     🟦 Запустить Windows XP
+  </button>
+
+  <!-- Модальное окно Windows XP -->
+  <div id="winxp-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #008080; border: 3px solid #c0c0c0; border-radius: 4px; width: 95%; max-width: 1000px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.8);">
+      <div style="background: linear-gradient(90deg, #0058E6, #3A9CFF); color: white; padding: 6px 10px; font-weight: bold; font-family: 'Trebuchet MS', sans-serif; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+        <span>🟦 Windows XP - Luna Theme</span>
+        <button id="close-winxp" style="background: #c0c0c0; border: 2px outset #fff; color: black; width: 24px; height: 24px; line-height: 20px; text-align: center; cursor: pointer; font-weight: bold; padding: 0; font-size: 1rem;"></button>
+      </div>
+      <iframe src="https://winxp.si/" style="flex: 1; border: none; background: #000;" title="Windows XP Emulator"></iframe>
     </div>
   </div>
 
@@ -1344,6 +1368,50 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
     if (typedKeys === secretCode) {
       openWin98();
       typedKeys = "";
+    }
+  });
+  /* ============ ПАСХАЛКА WINDOWS XP ============ */
+  var winxpModal = document.getElementById('winxp-modal');
+  var btnWinXP = document.getElementById('btn-winxp');
+  var btnCloseWinXP = document.getElementById('close-winxp');
+  var typedKeysXP = "";
+  var secretCodeXP = "winxp";
+
+  function openWinXP() {
+    if (winxpModal) {
+      winxpModal.style.display = 'flex';
+      log('[EASTER EGG]: Загружаем Windows XP... Luna theme активирован! 🟦', 'secret');
+    }
+  }
+
+  function closeWinXP() {
+    if (winxpModal) {
+      winxpModal.style.display = 'none';
+      var iframe = winxpModal.querySelector('iframe');
+      if (iframe) iframe.src = iframe.src;
+    }
+  }
+
+  if (btnWinXP) btnWinXP.addEventListener('click', openWinXP);
+  if (btnCloseWinXP) btnCloseWinXP.addEventListener('click', closeWinXP);
+
+  if (winxpModal) {
+    winxpModal.addEventListener('click', function(e) {
+      if (e.target === winxpModal) closeWinXP();
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    typedKeysXP += e.key.toLowerCase();
+    if (typedKeysXP.length > secretCodeXP.length) {
+      typedKeysXP = typedKeysXP.slice(-secretCodeXP.length);
+    }
+
+    if (typedKeysXP === secretCodeXP) {
+      openWinXP();
+      typedKeysXP = "";
     }
   });
 })();
