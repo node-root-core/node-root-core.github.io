@@ -1245,6 +1245,7 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
   var myIpInfo = document.getElementById('my-ip-info');
   var checkHostInput = document.getElementById('check-host-input');
 
+  // 1. Определяем IP (с защитой от сбоев)
   fetch('https://ipapi.co/json/')
     .then(function(res) { return res.json(); })
     .then(function(data) {
@@ -1258,21 +1259,33 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
       fetch('https://api.ipify.org?format=json')
         .then(function(res) { return res.json(); })
         .then(function(data) {
-          myIpInfo.innerHTML = '<div style="font-size: 1.2rem; color: var(--accent); font-weight: bold;">' + data.ip + '</div>';
+          myIpInfo.innerHTML = '<div style="font-size: 1.2rem; color: var(--accent); font-weight: bold;">' + data.ip + '</div><div style="font-size: 0.8rem; color: var(--muted);">Геолокация недоступна</div>';
         })
         .catch(function() {
-          myIpInfo.textContent = 'Не удалось определить IP';
+          myIpInfo.innerHTML = '<div style="color: var(--danger);">⚠ Не удалось определить IP</div>';
         });
     });
 
+  // 2. Функция проверки (ИСПРАВЛЕНО: правильный URL для ip-info)
   function openCheckHost(type) {
     var domain = checkHostInput.value.trim();
     if (!domain) { alert('Введи домен или IP для проверки!'); return; }
-    domain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    var url = 'https://check-host.net/check-' + type + '?host=' + encodeURIComponent(domain);
+    
+    // Очищаем от https:// и путей (оставляем только домен)
+    domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:.*$/, '');
+    
+    var url = '';
+    if (type === 'ip-info') {
+      // ВАЖНО: здесь НЕТ слова "check-"
+      url = 'https://check-host.net/ip-info?host=' + encodeURIComponent(domain);
+    } else {
+      url = 'https://check-host.net/check-' + type + '?host=' + encodeURIComponent(domain);
+    }
+    
     window.open(url, '_blank');
   }
 
+  // 3. Привязываем кнопки
   document.getElementById('btn-check-http').addEventListener('click', function() { openCheckHost('http'); });
   document.getElementById('btn-check-ping').addEventListener('click', function() { openCheckHost('ping'); });
   document.getElementById('btn-check-dns').addEventListener('click', function() { openCheckHost('dns'); });
