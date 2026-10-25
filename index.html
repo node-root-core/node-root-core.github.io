@@ -644,22 +644,26 @@ body.light-theme #note-input {
     <div style="text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 5px;">🟢 Доступен из США | 🔴 Заблокирован или недоступен</div>
   </div>  
     <div class="card full-width">
-    <h2>🌐 Сетевая разведка</h2>
-    <div id="my-ip-info" style="text-align: center; padding: 10px; color: var(--muted); font-size: 0.85rem;">
-      Определяю твой IP...
+  <h2>🌐 Сетевая разведка</h2>
+  <div style="text-align: center; padding: 10px; color: var(--muted); font-size: 0.85rem;">
+    <div style="font-size: 0.9rem; margin-bottom: 10px;">
+      ⚠️ IP определяется автоматически через Check-Host
     </div>
-    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-      <input type="text" id="check-host-input" placeholder="Введи домен (например, google.com)" 
-        style="flex: 1; min-width: 200px; background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; outline: none;">
-    </div>
-    <div class="controls" style="margin-top: 10px;">
-      <button id="btn-check-http" style="width: auto;">🌐 HTTP</button>
-      <button id="btn-check-ping" style="width: auto;">📡 Ping</button>
-      <button id="btn-check-dns" style="width: auto;">🔍 DNS</button>
-      <button id="btn-check-info" style="width: auto;">ℹ️ Info</button>
-    </div>
+    <button id="btn-my-ip" style="width: auto; background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+      👁️ Узнать мой IP на Check-Host
+    </button>
   </div>
-
+  <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+    <input type="text" id="check-host-input" placeholder="Введи домен (например, google.com)" 
+      style="flex: 1; min-width: 200px; background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; outline: none;">
+  </div>
+  <div class="controls" style="margin-top: 10px;">
+    <button id="btn-check-http" style="width: auto;">🌐 HTTP</button>
+    <button id="btn-check-ping" style="width: auto;">📡 Ping</button>
+    <button id="btn-check-dns" style="width: auto;">🔍 DNS</button>
+    <button id="btn-check-info" style="width: auto;">ℹ️ Info</button>
+  </div>
+</div>
   <div class="card full-width">
     <h2>📝 Блокнот</h2>
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -1242,58 +1246,23 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
   loadPulse();
 
   /* ============ СЕТЕВАЯ РАЗВЕДКА ============ */
-  var myIpInfo = document.getElementById('my-ip-info');
   var checkHostInput = document.getElementById('check-host-input');
 
-  // Функция для безопасного определения IP (обходит CORS через JSONP)
-  function detectIP() {
-    var script = document.createElement('script');
-    script.src = 'https://api.ipify.org?format=jsonp&callback=displayMyIP';
-    document.body.appendChild(script);
+  // Кнопка "Мой IP" - открывает check-host.net
+  document.getElementById('btn-my-ip').addEventListener('click', function() {
+    window.open('https://check-host.net/', '_blank');
+  });
 
-    // Эта функция вызовется автоматически, когда скрипт загрузится
-    window.displayMyIP = function(data) {
-      myIpInfo.innerHTML = 
-        '<div style="font-size: 1.2rem; color: var(--accent); font-weight: bold;">' + data.ip + '</div>' +
-        '<div style="font-size: 0.8rem; margin-top: 5px; color: var(--muted);">IP определен успешно</div>';
-      
-      // Удаляем скрипт после выполнения, чтобы не засорять страницу
-      if (script.parentNode) {
-        document.body.removeChild(script);
-      }
-    };
-
-    // Таймаут: если через 4 секунды IP не определился (блокировщик/VPN/Cloudflare)
-    setTimeout(function() {
-      if (myIpInfo.innerHTML.includes('Определяю')) {
-        myIpInfo.innerHTML = 
-          '<div style="color: var(--muted); font-size: 0.9rem; line-height: 1.4;">' +
-          '⚠ IP скрыт (VPN, AdBlock или защита)<br>' +
-          '<small style="color: var(--accent);">Введи домен вручную для проверки ↓</small>' +
-          '</div>';
-        
-        // Чистим зависший скрипт
-        if (script.parentNode) {
-          document.body.removeChild(script);
-        }
-      }
-    }, 4000);
-  }
-
-  // Запускаем определение IP
-  detectIP();
-
-  // 2. Функция проверки (ИСПРАВЛЕНО: правильный URL для ip-info)
+  // Функция проверки домена
   function openCheckHost(type) {
     var domain = checkHostInput.value.trim();
     if (!domain) { alert('Введи домен или IP для проверки!'); return; }
     
-    // Умно очищаем от https:// и путей (оставляем только чистый домен)
+    // Очищаем от https:// и путей
     domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:.*$/, '');
     
     var url = '';
     if (type === 'ip-info') {
-      // ВАЖНО: здесь НЕТ слова "check-", только "ip-info"
       url = 'https://check-host.net/ip-info?host=' + encodeURIComponent(domain);
     } else {
       url = 'https://check-host.net/check-' + type + '?host=' + encodeURIComponent(domain);
@@ -1302,7 +1271,7 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
     window.open(url, '_blank');
   }
 
-  // 3. Привязываем кнопки
+  // Привязываем кнопки
   document.getElementById('btn-check-http').addEventListener('click', function() { openCheckHost('http'); });
   document.getElementById('btn-check-ping').addEventListener('click', function() { openCheckHost('ping'); });
   document.getElementById('btn-check-dns').addEventListener('click', function() { openCheckHost('dns'); });
