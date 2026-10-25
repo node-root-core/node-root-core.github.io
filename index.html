@@ -532,6 +532,21 @@ body.light-theme #note-input {
     #us-debt { font-size: 1.3rem !important; }
     h1 { font-size: 1.3rem; }
   }
+  /* Стили для подсказки терминала */
+  .terminal-help {
+    background: rgba(46, 204, 113, 0.05);
+    border: 1px dashed var(--card-border);
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: background 0.2s;
+  }
+  .terminal-help[open] {
+    background: rgba(46, 204, 113, 0.1);
+    border-style: solid;
+  }
+  .terminal-help summary:hover {
+    color: var(--text);
+  }
 </style>
 </head>
 <body>
