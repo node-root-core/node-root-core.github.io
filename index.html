@@ -1245,38 +1245,55 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
   var myIpInfo = document.getElementById('my-ip-info');
   var checkHostInput = document.getElementById('check-host-input');
 
-  // 1. Определяем IP (с защитой от сбоев)
-  fetch('https://ipapi.co/json/')
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
+  // Функция для безопасного определения IP (обходит CORS через JSONP)
+  function detectIP() {
+    var script = document.createElement('script');
+    script.src = 'https://api.ipify.org?format=jsonp&callback=displayMyIP';
+    document.body.appendChild(script);
+
+    // Эта функция вызовется автоматически, когда скрипт загрузится
+    window.displayMyIP = function(data) {
       myIpInfo.innerHTML = 
-        '<div style="font-size: 1.2rem; color: var(--accent); font-weight: bold;">' + (data.ip || 'Неизвестно') + '</div>' +
-        '<div style="font-size: 0.8rem; margin-top: 5px;">' + 
-        (data.country_name || '') + ', ' + (data.city || '') + ' | ' + 
-        (data.org || '') + '</div>';
-    })
-    .catch(function() {
-      fetch('https://api.ipify.org?format=json')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          myIpInfo.innerHTML = '<div style="font-size: 1.2rem; color: var(--accent); font-weight: bold;">' + data.ip + '</div><div style="font-size: 0.8rem; color: var(--muted);">Геолокация недоступна</div>';
-        })
-        .catch(function() {
-          myIpInfo.innerHTML = '<div style="color: var(--danger);">⚠ Не удалось определить IP</div>';
-        });
-    });
+        '<div style="font-size: 1.2rem; color: var(--accent); font-weight: bold;">' + data.ip + '</div>' +
+        '<div style="font-size: 0.8rem; margin-top: 5px; color: var(--muted);">IP определен успешно</div>';
+      
+      // Удаляем скрипт после выполнения, чтобы не засорять страницу
+      if (script.parentNode) {
+        document.body.removeChild(script);
+      }
+    };
+
+    // Таймаут: если через 4 секунды IP не определился (блокировщик/VPN/Cloudflare)
+    setTimeout(function() {
+      if (myIpInfo.innerHTML.includes('Определяю')) {
+        myIpInfo.innerHTML = 
+          '<div style="color: var(--muted); font-size: 0.9rem; line-height: 1.4;">' +
+          '⚠ IP скрыт (VPN, AdBlock или защита)<br>' +
+          '<small style="color: var(--accent);">Введи домен вручную для проверки ↓</small>' +
+          '</div>';
+        
+        // Чистим зависший скрипт
+        if (script.parentNode) {
+          document.body.removeChild(script);
+        }
+      }
+    }, 4000);
+  }
+
+  // Запускаем определение IP
+  detectIP();
 
   // 2. Функция проверки (ИСПРАВЛЕНО: правильный URL для ip-info)
   function openCheckHost(type) {
     var domain = checkHostInput.value.trim();
     if (!domain) { alert('Введи домен или IP для проверки!'); return; }
     
-    // Очищаем от https:// и путей (оставляем только домен)
+    // Умно очищаем от https:// и путей (оставляем только чистый домен)
     domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/:.*$/, '');
     
     var url = '';
     if (type === 'ip-info') {
-      // ВАЖНО: здесь НЕТ слова "check-"
+      // ВАЖНО: здесь НЕТ слова "check-", только "ip-info"
       url = 'https://check-host.net/ip-info?host=' + encodeURIComponent(domain);
     } else {
       url = 'https://check-host.net/check-' + type + '?host=' + encodeURIComponent(domain);
