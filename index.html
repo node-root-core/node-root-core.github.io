@@ -642,6 +642,16 @@ body.light-theme #note-input {
 
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
+        <!-- Выпадающий список команд -->
+    <details class="terminal-help" style="margin-bottom: 15px; font-size: 0.8rem; color: var(--muted);">
+      <summary style="cursor: pointer; color: var(--accent); font-weight: bold;">📖 Список полезных команд (нажми, чтобы раскрыть)</summary>
+      <ul style="margin-top: 10px; padding-left: 20px; line-height: 1.6;">
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">ping -c 4 google.com</code> — проверить пинг до сайта</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">curl -I https://example.com</code> — получить заголовки сайта</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">neofetch</code> — красивая информация о системе</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">cat /etc/os-release</code> — узнать версию ОС</li>
+      </ul>
+    </details>
     <iframe class="terminal-frame" id="terminal" src="https://cli.h2.nexus" loading="lazy" title="Окошко в Европу"></iframe>
     <!-- Кнопка-страховка, если h2.nexus снова начнет глючить -->
     <div style="text-align: center; margin-top: 10px;">
