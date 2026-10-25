@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-25T18:36:53.990794Z",
+  "updated": "2026-10-25T19:08:52.826561Z",
   "services": {
     "Яндекс": "ok",
     "ВКонтакте": "ok",
@@ -11,7 +11,7 @@
     "Qwen": "down",
     "Grok": "ok",
     "GitHub": "ok",
-    "GitVerse": "down",
+    "GitVerse": "ok",
     "Hugging Face": "ok",
     "Cloudflare": "down",
     "Telegram": "ok",
