@@ -1302,6 +1302,50 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
   document.getElementById('btn-check-ping').addEventListener('click', function() { openCheckHost('ping'); });
   document.getElementById('btn-check-dns').addEventListener('click', function() { openCheckHost('dns'); });
   document.getElementById('btn-check-info').addEventListener('click', function() { openCheckHost('ip-info'); });
+  /* ============ ПАСХАЛКА WINDOWS 98 ============ */
+  var win98Modal = document.getElementById('win98-modal');
+  var btnWin98 = document.getElementById('btn-win98');
+  var btnCloseWin98 = document.getElementById('close-win98');
+  var typedKeys = "";
+  var secretCode = "win98";
+
+  function openWin98() {
+    if (win98Modal) {
+      win98Modal.style.display = 'flex';
+      log('[EASTER EGG]: Добро пожаловать в 1998 год! 🖥️', 'secret');
+    }
+  }
+
+  function closeWin98() {
+    if (win98Modal) {
+      win98Modal.style.display = 'none';
+      var iframe = win98Modal.querySelector('iframe');
+      if (iframe) iframe.src = iframe.src; 
+    }
+  }
+
+  if (btnWin98) btnWin98.addEventListener('click', openWin98);
+  if (btnCloseWin98) btnCloseWin98.addEventListener('click', closeWin98);
+  
+  if (win98Modal) {
+    win98Modal.addEventListener('click', function(e) {
+      if (e.target === win98Modal) closeWin98();
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    
+    typedKeys += e.key.toLowerCase();
+    if (typedKeys.length > secretCode.length) {
+      typedKeys = typedKeys.slice(-secretCode.length);
+    }
+    
+    if (typedKeys === secretCode) {
+      openWin98();
+      typedKeys = "";
+    }
+  });
 })();
 </script>
 </body>
