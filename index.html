@@ -519,6 +519,19 @@ body.light-theme #note-input {
   #us-debt { font-size: 1.2rem !important; }
   .terminal-frame { height: 250px; }
 }
+    /* Фикс для горизонтального телефона: часы в 2 колонки, терминал компактнее */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .world-clocks-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+    }
+    .world-clock { font-size: 1.1rem !important; }
+    .world-date { font-size: 0.6rem !important; }
+    
+    .terminal-frame { height: 220px !important; }
+    #us-debt { font-size: 1.3rem !important; }
+    h1 { font-size: 1.3rem; }
+  }
 </style>
 </head>
 <body>
