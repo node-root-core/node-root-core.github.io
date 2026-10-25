@@ -788,25 +788,51 @@ body.light-theme #note-input {
 
   /* ============ ВАЛЮТЫ ============ */
   function renderRate(el, value, storageKey) {
-    var previous = null;
-    try {
-      var stored = localStorage.getItem(storageKey);
-      if (stored !== null) previous = parseFloat(stored);
-      localStorage.setItem(storageKey, value);
-    } catch(e) {}
+    var trendStorageKey = storageKey + '_trend';
     var current = parseFloat(value);
+    var previous = null;
+    var trend = 'none';
+
+    try {
+      var storedVal = localStorage.getItem(storageKey);
+      var storedTrend = localStorage.getItem(trendStorageKey);
+      
+      if (storedVal !== null) {
+        previous = parseFloat(storedVal);
+      }
+      if (storedTrend !== null) {
+        trend = storedTrend;
+      }
+
+      // Если курс изменился, обновляем тренд. Если нет — сохраняем старый (стрелка висит!)
+      if (previous !== null && current !== previous) {
+        trend = current > previous ? 'up' : 'down';
+      }
+      
+      // Сохраняем актуальное значение и тренд
+      localStorage.setItem(storageKey, value);
+      localStorage.setItem(trendStorageKey, trend);
+    } catch(e) {}
+
     el.innerHTML = '';
     el.classList.remove('up', 'down');
     el.textContent = value + ' ₽';
-    if (previous !== null && !isNaN(previous) && previous !== current) {
+
+    // Рисуем стрелку на основе сохраненного тренда
+    if (trend === 'up') {
+      el.classList.add('up');
       var arrow = document.createElement('span');
       arrow.className = 'rate-arrow';
-      if (current > previous) { el.classList.add('up'); arrow.textContent = '▲'; } 
-      else { el.classList.add('down'); arrow.textContent = '▼'; }
+      arrow.textContent = '▲';
+      el.appendChild(arrow);
+    } else if (trend === 'down') {
+      el.classList.add('down');
+      var arrow = document.createElement('span');
+      arrow.className = 'rate-arrow';
+      arrow.textContent = '▼';
       el.appendChild(arrow);
     }
   }
-
   function loadCurrency() {
     currencyReady = false;
     btnPrint.disabled = true;
