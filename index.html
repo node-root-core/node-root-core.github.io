@@ -642,6 +642,22 @@ body.light-theme #note-input {
     </div>
     <div style="text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 5px;">🟢 Доступен из США | 🔴 Заблокирован или недоступен</div>
   </div>  
+    <div class="card full-width">
+    <h2>🌐 Сетевая разведка</h2>
+    <div id="my-ip-info" style="text-align: center; padding: 10px; color: var(--muted); font-size: 0.85rem;">
+      Определяю твой IP...
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+      <input type="text" id="check-host-input" placeholder="Введи домен (например, google.com)" 
+        style="flex: 1; min-width: 200px; background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; outline: none;">
+    </div>
+    <div class="controls" style="margin-top: 10px;">
+      <button id="btn-check-http" style="width: auto;">🌐 HTTP</button>
+      <button id="btn-check-ping" style="width: auto;">📡 Ping</button>
+      <button id="btn-check-dns" style="width: auto;">🔍 DNS</button>
+      <button id="btn-check-info" style="width: auto;">ℹ️ Info</button>
+    </div>
+  </div>
 
   <div class="card full-width">
     <h2>📝 Блокнот</h2>
