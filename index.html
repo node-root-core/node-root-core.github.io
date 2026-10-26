@@ -774,7 +774,7 @@
         <span id="radio-freq-display">87.5</span> МГц
       </div>
     </div>
-    
+  
     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
       <button id="btn-radio-power" style="width: auto; padding: 10px 20px; background: var(--danger); color: white; border: none; font-size: 0.85rem;">⏻ ПИТАНИЕ</button>
       <span style="color: var(--muted); font-size: 0.8rem;">Поиск:</span>
@@ -798,7 +798,8 @@
       <div id="radio-recordings-list" style="margin-top: 8px; font-size: 0.75rem; color: var(--muted);"></div>
     </div>
   </div>
-
+<!-- Скрытый плеер для воспроизведения загруженных записей -->
+<audio id="radio-audio-player" style="display: none;"></audio>
   <div class="card full-width">
     <h2>🤖 ИИ-Аналитик</h2>
     <textarea id="ai-input" placeholder="Вставьте сюда партию свежесваренной останкинской лапши..."></textarea>
@@ -1701,7 +1702,8 @@
   var noiseNode = null;
   var gainNode = null;
   var isRadioOn = false;
-
+  var radioAudioPlayer = document.getElementById('radio-audio-player');
+  var userRecordings = [];
   var stations = {
     912: "📡 [ПОМЕХИ] ...здесь кто-то есть? Если вы это слышите, мы в бункере под Заводом. Запасы на исходе...",
     981: "🎵 [МЕСТНОЕ ВЕЩАНИЕ] Кондрово на связи. Погода: переменная облачность, ветер 5 м/с. Здравый смысл в дефиците.",
@@ -1761,38 +1763,62 @@
     }
   });
 
-  function updateRadio(freq) {
+   function updateRadio(freq) {
     var freqMhz = (freq / 10).toFixed(1);
     radioFreqDisplay.textContent = freqMhz;
     
     var minDistance = 1000;
-    var closestStation = null;
+    var closestStationFreq = null;
 
     for (var key in stations) {
       var distance = Math.abs(freq - parseInt(key));
       if (distance < minDistance) {
         minDistance = distance;
-        closestStation = stations[key];
+        closestStationFreq = parseInt(key);
       }
     }
+
+    // Проверяем, является ли ближайшая станция пользовательской записью
+    var userRec = userRecordings.find(function(r) { return r.freq === closestStationFreq; });
 
     if (minDistance <= 3) {
       var noiseLevel = (minDistance / 3) * 0.15;
       gainNode.gain.setTargetAtTime(noiseLevel, audioCtx.currentTime, 0.1);
-      radioDisplay.textContent = closestStation;
-      radioDisplay.style.color = '#2ecc71';
+      
+      if (userRec) {
+        // ЭТО ПОЛЬЗОВАТЕЛЬСКАЯ ЗАПИСЬ: воспроизводим её
+        radioDisplay.textContent = "📼 Воспроизведение: " + userRec.name;
+        radioDisplay.style.color = '#2ecc71';
+        
+        if (radioAudioPlayer.src !== userRec.url || radioAudioPlayer.paused) {
+          radioAudioPlayer.src = userRec.url;
+          radioAudioPlayer.play().catch(function(e) {
+            console.log("Автовоспроизведение заблокировано:", e);
+          });
+        }
+      } else {
+        // ЭТО ВСТРОЕННАЯ ТЕКСТОВАЯ СТАНЦИЯ
+        radioDisplay.textContent = stations[closestStationFreq];
+        radioDisplay.style.color = '#2ecc71';
+        radioAudioPlayer.pause();
+      }
     } else {
       gainNode.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.1);
       radioDisplay.textContent = "ПОИСК СИГНАЛА...";
       radioDisplay.style.color = '#8b949e';
+      radioAudioPlayer.pause();
     }
   }
+    radioDial.addEventListener('input', function() {
+    if (isRadioOn) {
+      updateRadio(parseInt(this.value));
+    }
+  });
 
   // Загрузка пользовательских записей для радио
   var radioRecordingsInput = document.getElementById('radio-recordings-input');
   var btnLoadRadioRecordings = document.getElementById('btn-load-radio-recordings');
   var radioRecordingsList = document.getElementById('radio-recordings-list');
-  var userRecordings = [];
 
   btnLoadRadioRecordings.addEventListener('click', function() {
     radioRecordingsInput.click();
@@ -1802,16 +1828,14 @@
     var files = Array.from(e.target.files);
     if (files.length > 0) {
       files.forEach(function(file, index) {
+        var freq = 900 + (index * 10);
         userRecordings.push({
           file: file,
           url: URL.createObjectURL(file),
           name: file.name,
-          freq: 900 + index * 10
+          freq: freq
         });
-      });
-      
-      userRecordings.forEach(function(rec) {
-        stations[rec.freq] = '📼 [ЗАПИСЬ] ' + rec.name;
+        stations[freq] = '📼 [ЗАПИСЬ] ' + file.name;
       });
       
       radioRecordingsList.textContent = 'Загружено записей: ' + files.length + ' (частоты: ' + 
@@ -1820,6 +1844,7 @@
       log('[RADIO]: Загружено пользовательских записей: ' + files.length);
     }
   });
+
 
 })();
 </script>
