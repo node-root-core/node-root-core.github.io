@@ -696,7 +696,7 @@ body.light-theme #note-input {
 
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
-    <!-- Выпадающий список команд -->
+        <!-- Выпадающий список команд -->
     <details class="terminal-help" style="margin-bottom: 15px; font-size: 0.8rem; color: var(--muted);">
       <summary style="cursor: pointer; color: var(--accent); font-weight: bold;">📖 Список полезных команд (нажми, чтобы раскрыть)</summary>
       <ul style="margin-top: 10px; padding-left: 20px; line-height: 1.6;">
@@ -706,27 +706,15 @@ body.light-theme #note-input {
         <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">cat /etc/os-release</code> — узнать версию ОС</li>
       </ul>
     </details>
-    
-    <!-- РАБОЧИЙ ТЕРМИНАЛ (Отечественный узел) -->
-    <iframe class="terminal-frame" id="terminal" src="https://onlinelinuxterminal.com/ru/terminal/" loading="lazy" title="Окошко в Европу" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-pointer-lock"></iframe>
-    
-    <!-- Кнопка-страховка -->
+    <iframe class="terminal-frame" id="terminal" src="https://cli.h2.nexus" loading="lazy" title="Окошко в Европу"></iframe>
+    <!-- Кнопка-страховка, если h2.nexus снова начнет глючить -->
     <div style="text-align: center; margin-top: 10px;">
-      <a href="https://onlinelinuxterminal.com/ru/terminal/" target="_blank" rel="noopener" 
+      <a href="https://cli.h2.nexus" target="_blank" rel="noopener" 
          style="display: inline-block; background: var(--accent); color: var(--bg); padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold;">
-         🔗 Открыть окошко в новой вкладке
+         🔗 Открыть терминал в новой вкладке
       </a>
     </div>
-    
-    <!-- НОВАЯ ИРОНИЧНАЯ ПОДПИСЬ -->
-    <p class="caption" id="europe-caption" style="font-size: 0.75rem; line-height: 1.4;">
-      🌱 <b>Окошко в Европу</b><br>
-      <span style="color: var(--muted); font-size: 0.7rem;">
-        ⚠️ Оригинальное направление временно прикрыто. Трафик перенаправлен на стабильный отечественный узел.<br>
-        💡 <i>Для проверки доступности сайтов из-за рубежа используйте инструмент «Сетевая разведка» (Check-Host) выше — он показывает пинг со всего мира без VPN.</i>
-      </span>
-    </p>
-    
+    <p class="caption" id="europe-caption">🌱 Окошко в Европу на 15 минут</p>
     <div class="controls">
       <button id="btn-cord" class="danger">🪢 ДЁРНУТЬ ЗА ШНУРОК</button>
     </div>
@@ -778,11 +766,6 @@ body.light-theme #note-input {
         <span>🖥️ Windows 98 - Internet Explorer 5</span>
         <button id="close-win98" style="background: #c0c0c0; border: 2px outset #fff; color: black; width: 24px; height: 24px; line-height: 20px; text-align: center; cursor: pointer; font-weight: bold; padding: 0; font-size: 1rem;">✕</button>
       </div>
-      <!-- Предупреждение о VPN -->
-<div style="background: rgba(231, 76, 60, 0.2); border-bottom: 2px dashed #e74c3c; padding: 8px; text-align: center; font-size: 0.8rem; color: #fff; font-family: sans-serif;">
-  ⚠️ <b>Внимание:</b> Если экран чёрный — используйте VPN или откройте 
-  <a href="https://win98.si/" target="_blank" style="color: #fff; text-decoration: underline; font-weight: bold;">в новой вкладке ↗</a>
-</div>
       <!-- Iframe с эмулятором -->
       <iframe src="https://win98.si/" style="flex: 1; border: none; background: #000;" title="Windows 98 Emulator"></iframe>
     </div>
@@ -799,11 +782,6 @@ body.light-theme #note-input {
         <span>🟦 Windows XP - Luna Theme</span>
         <button id="close-winxp" style="background: #c0c0c0; border: 2px outset #fff; color: black; width: 24px; height: 24px; line-height: 20px; text-align: center; cursor: pointer; font-weight: bold; padding: 0; font-size: 1rem;"></button>
       </div>
-      <!-- Предупреждение о VPN -->
-<div style="background: rgba(231, 76, 60, 0.2); border-bottom: 2px dashed #e74c3c; padding: 8px; text-align: center; font-size: 0.8rem; color: #fff; font-family: sans-serif;">
-  ⚠️ <b>Внимание:</b> Если экран чёрный — используйте VPN или откройте 
-  <a href="https://winxp.si/" target="_blank" style="color: #fff; text-decoration: underline; font-weight: bold;">в новой вкладке ↗</a>
-</div>
       <iframe src="https://winxp.si/" style="flex: 1; border: none; background: #000;" title="Windows XP Emulator"></iframe>
     </div>
   </div>
