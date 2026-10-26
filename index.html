@@ -574,6 +574,7 @@
     <div class="controls">
       <button id="btn-print" disabled>🖨 ПЕЧАТНЫЙ СТАНОК МВФ</button>
     </div>
+    <button id="btn-2013" style="width: auto; padding: 8px 12px; font-size: 0.75rem; opacity: 0.6; margin-top: 5px;">🕰 2013</button>
   </div>
 
   <div class="card full-width">
@@ -638,6 +639,7 @@
       <button id="btn-check-ping" style="width: auto;">📡 Ping</button>
       <button id="btn-check-dns" style="width: auto;">🔍 DNS</button>
       <button id="btn-check-info" style="width: auto;">ℹ️ Info</button>
+      <button id="btn-check-rkn" style="width: auto; background: var(--danger); color: white; border: none;">🇷🇺 Проверка в РКН</button>
     </div>
   </div>
 
@@ -1448,6 +1450,53 @@
   }
 
   loadLocalTerminal();
+  /* ============ ПРОВЕРКА РКН ============ */
+  document.getElementById('btn-check-rkn').addEventListener('click', function() {
+    window.open('https://eais.rkn.gov.ru/', '_blank');
+    log('[RKN]: Открыт реестр запрещённых сайтов. Проверяй, коллега.');
+  });
+  /* ============ ПЕРЕНОС В 2013 ГОД ============ */
+  var btn2013 = document.getElementById('btn-2013');
+  var timeTravelActive = false;
+  var originalUsdVal = null;
+  var originalEurVal = null;
+  var originalRateVal = null;
+
+  btn2013.addEventListener('click', function() {
+    if (timeTravelActive) return; // Уже в прошлом
+    timeTravelActive = true;
+    
+    log('[TIME TRAVEL]: Активирован протокол переноса в 2013 год! 🕰️', 'secret');
+    document.body.style.filter = 'sepia(0.6) hue-rotate(-10deg) saturate(1.5)'; // Эффект старой плёнки
+    
+    // Сохраняем текущие значения
+    originalUsdVal = usdEl.textContent;
+    originalEurVal = eurEl.textContent;
+    var keyRateEl = document.getElementById('key-rate');
+    originalRateVal = keyRateEl.textContent;
+
+    // Меняем на "золотые"
+    usdEl.textContent = '30.50 ₽';
+    usdEl.classList.remove('up', 'down');
+    eurEl.textContent = '40.00 ₽';
+    eurEl.classList.remove('up', 'down');
+    keyRateEl.textContent = '5.50%';
+    keyRateEl.style.color = 'var(--accent)'; // Зелёная ставка (хорошая!)
+
+    alert('🎉 Добро пожаловать в 2013 год!\n\nКурс доллара: 30.50 ₽\nКурс евро: 40.00 ₽\nСтавка ЦБ: 5.50%\n\nНаслаждайтесь стабильностью, коллега. У вас есть 15 секунд.');
+
+    setTimeout(function() {
+      // Возврат
+      usdEl.textContent = originalUsdVal;
+      eurEl.textContent = originalEurVal;
+      keyRateEl.textContent = originalRateVal;
+      keyRateEl.style.color = 'var(--danger)';
+      document.body.style.filter = '';
+      timeTravelActive = false;
+      log('[TIME TRAVEL]: Возврат в реальность. Стабильность закончилась.', 'reset');
+      alert('💸 2026 год. Добро пожаловать домой.');
+    }, 15000);
+  });
 })();
 </script>
 </body>
