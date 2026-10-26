@@ -719,6 +719,27 @@ body.light-theme #note-input {
       <button id="btn-cord" class="danger">🪢 ДЁРНУТЬ ЗА ШНУРОК</button>
     </div>
   </div>
+    <!-- РЕЗЕРВНЫЙ ЛОКАЛЬНЫЙ ТЕРМИНАЛ -->
+  <div class="card terminal-card full-width">
+    <h2>🖥️ Локальный терминал (Резервный)</h2>
+    <details class="terminal-help" style="margin-bottom: 15px; font-size: 0.8rem; color: var(--muted);">
+      <summary style="cursor: pointer; color: var(--accent); font-weight: bold;">📖 Список команд (нажми, чтобы раскрыть)</summary>
+      <ul style="margin-top: 10px; padding-left: 20px; line-height: 1.6;">
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">help</code> — показать список команд</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">neofetch</code> — информация о системе</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">date</code> — текущее время</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">clear</code> — очистить экран</li>
+        <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">academy</code> — секретная команда</li>
+      </ul>
+    </details>
+    
+    <!-- Контейнер для xterm.js -->
+    <div id="local-terminal" style="width: 100%; height: 400px; border: 2px solid var(--accent); border-radius: 8px; background: #0d1117; overflow: hidden;"></div>
+    
+    <p class="caption" style="font-size: 0.75rem; line-height: 1.4;">
+      🛡️ Работает полностью локально в браузере. Не зависит от внешних серверов и VPN.
+    </p>
+  </div>
 
   <div class="card full-width">
     <h2>🤖 ИИ-Аналитик</h2>
@@ -1414,6 +1435,139 @@ div.style.cssText = 'display: flex; align-items: center; gap: 10px; background: 
       typedKeysXP = "";
     }
   });
+    /* ============ ЛОКАЛЬНЫЙ ТЕРМИНАЛ (xterm.js) ============ */
+  function loadLocalTerminal() {
+    var termContainer = document.getElementById('local-terminal');
+    if (!termContainer) return;
+
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css';
+    document.head.appendChild(link);
+
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js';
+    script.onload = function() {
+      var addonScript = document.createElement('script');
+      addonScript.src = 'https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js';
+      addonScript.onload = function() {
+        initLocalTerminal();
+      };
+      document.head.appendChild(addonScript);
+    };
+    document.head.appendChild(script);
+  }
+
+  function initLocalTerminal() {
+    var termContainer = document.getElementById('local-terminal');
+    var term = new Terminal({
+      cursorBlink: true,
+      theme: {
+        background: '#0d1117',
+        foreground: '#e6edf3',
+        cursor: '#2ecc71',
+        selectionBackground: 'rgba(46, 204, 113, 0.3)'
+      },
+      fontFamily: '"JetBrains Mono", "Fira Code", Consolas, monospace',
+      fontSize: 14
+    });
+
+    var fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(termContainer);
+    fitAddon.fit();
+
+    term.writeln('\x1b[1;32mДобро пожаловать в Резервный Терминал Академии Без Ашибок v1.0\x1b[0m');
+    term.writeln('\x1b[90mВведите "help" для списка команд.\x1b[0m\r\n');
+
+    var currentLine = '';
+    var commandHistory = [];
+    var historyIndex = -1;
+
+    term.onKey(function(e) {
+      var ev = e.domEvent;
+      var printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+
+      if (ev.keyCode === 13) {
+        term.write('\r\n');
+        processLocalCommand(currentLine.trim());
+        currentLine = '';
+        term.write('\x1b[1;32macademy@root:~$\x1b[0m ');
+      } else if (ev.keyCode === 8) {
+        if (currentLine.length > 0) {
+          currentLine = currentLine.slice(0, -1);
+          term.write('\b \b');
+        }
+      } else if (ev.keyCode === 38) {
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          var cmd = commandHistory[commandHistory.length - 1 - historyIndex];
+          term.write('\r\x1b[K\x1b[1;32macademy@root:~$\x1b[0m ' + cmd);
+          currentLine = cmd;
+        }
+      } else if (ev.keyCode === 40) {
+        if (historyIndex > 0) {
+          historyIndex--;
+          var cmd = commandHistory[commandHistory.length - 1 - historyIndex];
+          term.write('\r\x1b[K\x1b[1;32macademy@root:~$\x1b[0m ' + cmd);
+          currentLine = cmd;
+        } else if (historyIndex === 0) {
+          historyIndex = -1;
+          term.write('\r\x1b[K\x1b[1;32macademy@root:~$\x1b[0m ');
+          currentLine = '';
+        }
+      } else if (printable) {
+        currentLine += e.key;
+        term.write(e.key);
+      }
+    });
+
+    term.write('\x1b[1;32macademy@root:~$\x1b[0m ');
+
+    function processLocalCommand(cmd) {
+      if (cmd) {
+        commandHistory.push(cmd);
+        historyIndex = -1;
+      }
+      var lowerCmd = cmd.toLowerCase();
+      if (lowerCmd === 'help') {
+        term.writeln('Доступные команды:');
+        term.writeln('  \x1b[36mhelp\x1b[0m      - показать это сообщение');
+        term.writeln('  \x1b[36mclear\x1b[0m     - очистить экран');
+        term.writeln('  \x1b[36mdate\x1b[0m      - показать текущую дату и время');
+        term.writeln('  \x1b[36mneofetch\x1b[0m  - информация о системе');
+        term.writeln('  \x1b[36mwhoami\x1b[0m    - текущий пользователь');
+        term.writeln('  \x1b[36macademy\x1b[0m   - секретная команда');
+      } else if (lowerCmd === 'clear') {
+        term.clear();
+      } else if (lowerCmd === 'date') {
+        term.writeln(new Date().toString());
+      } else if (lowerCmd === 'whoami') {
+        term.writeln('\x1b[1;33mroot\x1b[0m (ты же админ, коллега?)');
+      } else if (lowerCmd === 'academy') {
+        term.writeln('\x1b[1;35m🎓 АКАДЕМИЯ БЕЗ АШИБОК 🎓\x1b[0m');
+        term.writeln('\x1b[90m"Идентификаторы здравого смысла в условиях глобального бездорожья"\x1b[0m');
+      } else if (lowerCmd === 'neofetch') {
+        term.writeln('\x1b[1;32m       .---.       \x1b[0m  \x1b[1;33macademy@root\x1b[0m');
+        term.writeln('\x1b[1;32m      /     \\      \x1b[0m  ------------');
+        term.writeln('\x1b[1;32m     |  O O  |     \x1b[0m  \x1b[1;36mOS:\x1b[0m Академия OS 1.0');
+        term.writeln('\x1b[1;32m     |   _   |     \x1b[0m  \x1b[1;36mHost:\x1b[0m Локальный браузер');
+        term.writeln('\x1b[1;32m      \\_____/      \x1b[0m  \x1b[1;36mKernel:\x1b[0m JavaScript V8');
+        term.writeln('\x1b[1;32m       | | |       \x1b[0m  \x1b[1;36mShell:\x1b[0m academy-sh');
+        term.writeln('\x1b[1;32m      /     \\      \x1b[0m  \x1b[1;36mTheme:\x1b[0m Cyber-Green');
+      } else if (lowerCmd !== '') {
+        term.writeln('\x1b[1;31mКоманда не найдена: \x1b[0m' + cmd);
+        term.writeln('\x1b[90mВведите "help" для списка команд.\x1b[0m');
+      }
+    }
+    
+    window.addEventListener('resize', function() {
+      fitAddon.fit();
+    });
+  }
+
+  // Запускаем загрузку резервного терминала
+  loadLocalTerminal();
 })();
 </script>
 </body>
