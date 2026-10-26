@@ -159,6 +159,14 @@
   body.flash { background: #143d1e !important; transition: background 0.1s; }
   body.panic { background: #3a0d0d !important; transition: background 0.4s; }
 
+  /* Обертка для корректной работы фильтров (исправление бага 2013) */
+  #content-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: filter 0.5s ease;
+  }
+
   header {
     text-align: center;
     margin-bottom: 30px;
@@ -529,20 +537,8 @@
       padding: 12px !important;
     }
   }
-  /* === МОБИЛЬНЫЙ ФИКС ДЛЯ ТЕРМИНАЛОВ === */
-  @media (max-width: 768px) {
-    .terminal-frame {
-      height: 250px !important;
-    }
-    #local-terminal {
-      height: 250px !important;
-    }
-    .terminal-card {
-      padding: 12px !important;
-    }
-  }
 
-  /* Стилизация ползунка радио */
+  /* === СТИЛИ ДЛЯ РАДИО И ПЛЕЕРА === */
   #radio-dial {
     height: 8px;
     border-radius: 4px;
@@ -568,9 +564,11 @@
     border: 1px solid var(--card-border);
   }
 </style>
-</style>
 </head>
 <body>
+
+<!-- Обертка для корректной работы фильтров (исправление бага 2013) -->
+<div id="content-wrapper">
 
 <header>
   <h1>АКАДЕМИЯ БЕЗ <span style="color: var(--danger);">А</span>ШИБОК</h1>
@@ -667,7 +665,7 @@
   <div class="card full-width">
     <h2>🌐 Сетевая разведка</h2>
     <div style="text-align: center; padding: 10px; color: var(--muted); font-size: 0.85rem;">
-      <div style="font-size: 0.9rem; margin-bottom: 10px;">️ IP определяется автоматически через Check-Host</div>
+      <div style="font-size: 0.9rem; margin-bottom: 10px;">⚠️ IP определяется автоматически через Check-Host</div>
       <button id="btn-my-ip" style="width: auto; background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">👁️ Узнать мой IP на Check-Host</button>
     </div>
     <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
@@ -697,7 +695,7 @@
   <div class="card terminal-card full-width">
     <h2>🌱 Окошко в Европу</h2>
     <details class="terminal-help" style="margin-bottom: 15px; font-size: 0.8rem; color: var(--muted);">
-      <summary style="cursor: pointer; color: var(--accent); font-weight: bold;"> Список полезных команд (нажми, чтобы раскрыть)</summary>
+      <summary style="cursor: pointer; color: var(--accent); font-weight: bold;">📖 Список полезных команд (нажми, чтобы раскрыть)</summary>
       <ul style="margin-top: 10px; padding-left: 20px; line-height: 1.6;">
         <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">ping -c 4 google.com</code> — проверить пинг до сайта</li>
         <li><code style="background: var(--card-border); padding: 2px 6px; border-radius: 4px; color: var(--text);">curl -I https://example.com</code> — получить заголовки сайта</li>
@@ -715,7 +713,6 @@
     </div>
   </div>
 
-  <!-- ЗАРУБЕЖНЫЙ ТЕРМИНАЛ (ТОЛЬКО ССЫЛКА) -->
   <div class="card terminal-card full-width">
     <h2>🌍 Зарубежный узел (Foreign IP)</h2>
     <details class="terminal-help" style="margin-bottom: 15px; font-size: 0.8rem; color: var(--muted);">
@@ -728,11 +725,10 @@
     </details>
     <div style="width: 100%; height: 150px; border: 2px dashed var(--accent); border-radius: 8px; background: rgba(46, 204, 113, 0.05); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 15px;">
       <div style="font-size: 0.9rem; font-weight: bold; color: var(--text); margin-bottom: 10px;">🛡️ Прямая загрузка в iframe заблокирована политикой безопасности браузера</div>
-      <a href="https://onlinelinuxterminal.com/ru/terminal/" target="_blank" rel="noopener" style="display: inline-block; background: var(--accent); color: var(--bg); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: bold; transition: all 0.2s;"> Открыть зарубежный терминал в новой вкладке</a>
+      <a href="https://onlinelinuxterminal.com/ru/terminal/" target="_blank" rel="noopener" style="display: inline-block; background: var(--accent); color: var(--bg); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: bold; transition: all 0.2s;">🚀 Открыть зарубежный терминал в новой вкладке</a>
     </div>
   </div>
 
-  <!-- ТЕРМИНАЛ АКАДЕМИИ (ШУТОЧНЫЙ) -->
   <div class="card terminal-card full-width">
     <h2>🎭 Терминал Академии (Шуточный)</h2>
     <details class="terminal-help" style="margin-bottom: 15px; font-size: 0.8rem; color: var(--muted);">
@@ -750,16 +746,21 @@
     <p class="caption" style="font-size: 0.75rem; line-height: 1.4;">🎪 Работает полностью локально. Для шуток, пасхалок и симуляции. Попробуй: academy, neofetch, ping google.com</p>
   </div>
 
-    <!-- ЛОКАЛЬНЫЙ MP3 ПЛЕЕР -->
+  <!-- ЛОКАЛЬНЫЙ MP3 ПЛЕЕР С ПЛЕЙЛИСТОМ -->
   <div class="card full-width">
     <h2>🎵 Локальный аудио-плеер</h2>
     <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
-      <input type="file" id="audio-file-input" accept="audio/*" style="display: none;">
-      <button id="btn-load-audio" style="width: auto; padding: 10px 20px; font-size: 0.85rem;">📂 Загрузить MP3</button>
-      <span id="audio-file-name" style="color: var(--muted); font-size: 0.85rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Файл не выбран</span>
+      <input type="file" id="audio-file-input" accept="audio/*" multiple style="display: none;">
+      <button id="btn-load-audio" style="width: auto; padding: 10px 20px; font-size: 0.85rem;">📂 Загрузить файлы</button>
+      <button id="btn-prev-track" style="width: auto; padding: 8px 12px; font-size: 0.85rem;" disabled>⏮ Prev</button>
+      <button id="btn-next-track" style="width: auto; padding: 8px 12px; font-size: 0.85rem;" disabled>Next ⏭</button>
+      <span id="audio-file-name" style="color: var(--muted); font-size: 0.85rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Файлы не выбраны</span>
     </div>
     <audio id="local-audio-player" controls style="width: 100%; height: 40px; border-radius: 8px; accent-color: var(--accent);"></audio>
-    <p class="caption" style="font-size: 0.75rem; margin-top: 8px;">🔒 Музыка хранится только в твоем браузере и никуда не отправляется.</p>
+    <div id="playlist-container" style="margin-top: 10px; max-height: 150px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 6px; padding: 8px;">
+      <div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Плейлист пуст. Загрузите аудиофайлы.</div>
+    </div>
+    <p class="caption" style="font-size: 0.75rem; margin-top: 8px;">🔒 Музыка хранится только в твоем браузере. Поддерживается загрузка нескольких файлов.</p>
   </div>
 
   <!-- РАДИО ПРИЁМНИК "АВРОРА" -->
@@ -777,8 +778,7 @@
     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
       <button id="btn-radio-power" style="width: auto; padding: 10px 20px; background: var(--danger); color: white; border: none; font-size: 0.85rem;">⏻ ПИТАНИЕ</button>
       <span style="color: var(--muted); font-size: 0.8rem;">Поиск:</span>
-      <input type="range" id="radio-dial" min="875" max="1080" value="875" step="1" disabled 
-             style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+      <input type="range" id="radio-dial" min="875" max="1080" value="875" step="1" disabled style="flex: 1; accent-color: var(--accent); cursor: pointer;">
     </div>
     
     <details class="terminal-help" style="font-size: 0.75rem; color: var(--muted);">
@@ -790,7 +790,15 @@
         <li><b>107.7 МГц</b> — Сигнал "Авроры"</li>
       </ul>
     </details>
+
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--card-border);">
+      <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 10px;">📼 Загрузить свои записи переговоров (например, с radioscanner.ru):</div>
+      <input type="file" id="radio-recordings-input" accept="audio/*" multiple style="display: none;">
+      <button id="btn-load-radio-recordings" style="width: 100%; padding: 8px; font-size: 0.8rem; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; cursor: pointer;">📂 Загрузить аудио записи для радио</button>
+      <div id="radio-recordings-list" style="margin-top: 8px; font-size: 0.75rem; color: var(--muted);"></div>
+    </div>
   </div>
+
   <div class="card full-width">
     <h2>🤖 ИИ-Аналитик</h2>
     <textarea id="ai-input" placeholder="Вставьте сюда партию свежесваренной останкинской лапши..."></textarea>
@@ -823,6 +831,8 @@
   из официальных открытых источников (МВФ, Центробанки, публикации институтов)
   в ознакомительных целях.
 </footer>
+
+</div> <!-- Конец content-wrapper -->
 
 <!-- Windows 98/XP временно отключены до создания self-hosted версии -->
 
@@ -1349,6 +1359,54 @@
   document.getElementById('btn-check-dns').addEventListener('click', function() { openCheckHost('dns'); });
   document.getElementById('btn-check-info').addEventListener('click', function() { openCheckHost('ip-info'); });
 
+  /* ============ ПРОВЕРКА РКН ============ */
+  document.getElementById('btn-check-rkn').addEventListener('click', function() {
+    window.open('https://eais.rkn.gov.ru/', '_blank');
+    log('[RKN]: Открыт реестр запрещённых сайтов. Проверяй, коллега.');
+  });
+
+  /* ============ ПЕРЕНОС В 2013 ГОД ============ */
+  var btn2013 = document.getElementById('btn-2013');
+  var timeTravelActive = false;
+  var originalUsdVal = null;
+  var originalEurVal = null;
+  var originalRateVal = null;
+
+  btn2013.addEventListener('click', function() {
+    if (timeTravelActive) return;
+    timeTravelActive = true;
+    
+    log('[TIME TRAVEL]: Активирован протокол переноса в 2013 год! 🕰️', 'secret');
+    // ИСПРАВЛЕНИЕ БАГА: применяем фильтр к wrapper, а не к body
+    document.getElementById('content-wrapper').style.filter = 'sepia(0.6) hue-rotate(-10deg) saturate(1.5)';
+    
+    originalUsdVal = usdEl.textContent;
+    originalEurVal = eurEl.textContent;
+    var keyRateEl = document.getElementById('key-rate');
+    originalRateVal = keyRateEl.textContent;
+
+    usdEl.textContent = '30.50 ₽';
+    usdEl.classList.remove('up', 'down');
+    eurEl.textContent = '40.00 ₽';
+    eurEl.classList.remove('up', 'down');
+    keyRateEl.textContent = '5.50%';
+    keyRateEl.style.color = 'var(--accent)';
+
+    alert('🎉 Добро пожаловать в 2013 год!\n\nКурс доллара: 30.50 ₽\nКурс евро: 40.00 ₽\nСтавка ЦБ: 5.50%\n\nНаслаждайтесь стабильностью, коллега. У вас есть 15 секунд.');
+
+    setTimeout(function() {
+      usdEl.textContent = originalUsdVal;
+      eurEl.textContent = originalEurVal;
+      keyRateEl.textContent = originalRateVal;
+      keyRateEl.style.color = 'var(--danger)';
+      // ИСПРАВЛЕНИЕ БАГА: корректное удаление фильтра
+      document.getElementById('content-wrapper').style.removeProperty('filter');
+      timeTravelActive = false;
+      log('[TIME TRAVEL]: Возврат в реальность. Стабильность закончилась.', 'reset');
+      alert('💸 2026 год. Добро пожаловать домой.');
+    }, 15000);
+  });
+
   /* ============ ЛОКАЛЬНЫЙ ТЕРМИНАЛ (xterm.js) ============ */
   function loadLocalTerminal() {
     var termContainer = document.getElementById('local-terminal');
@@ -1470,7 +1528,7 @@
         term.writeln('\x1b[90m(Приветствую, коллега. Ты и так обладаешь абсолютной властью в этой системе)\x1b[0m');
       }
       else if (lowerCmd === 'academy') {
-        term.writeln('\x1b[1;35m🎓 АКАДЕМИЯ БЕЗ АШИБОК \x1b[0m');
+        term.writeln('\x1b[1;35m🎓 АКАДЕМИЯ БЕЗ АШИБОК\x1b[0m');
         term.writeln('\x1b[90m"Идентификаторы здравого смысла в условиях глобального бездорожья"\x1b[0m');
       }
       else if (lowerCmd === 'neofetch') {
@@ -1530,73 +1588,108 @@
   }
 
   loadLocalTerminal();
-  /* ============ ПРОВЕРКА РКН ============ */
-  document.getElementById('btn-check-rkn').addEventListener('click', function() {
-    window.open('https://eais.rkn.gov.ru/', '_blank');
-    log('[RKN]: Открыт реестр запрещённых сайтов. Проверяй, коллега.');
-  });
-  /* ============ ПЕРЕНОС В 2013 ГОД ============ */
-  var btn2013 = document.getElementById('btn-2013');
-  var timeTravelActive = false;
-  var originalUsdVal = null;
-  var originalEurVal = null;
-  var originalRateVal = null;
 
-  btn2013.addEventListener('click', function() {
-    if (timeTravelActive) return; // Уже в прошлом
-    timeTravelActive = true;
-    
-    log('[TIME TRAVEL]: Активирован протокол переноса в 2013 год! 🕰️', 'secret');
-    document.body.style.filter = 'sepia(0.6) hue-rotate(-10deg) saturate(1.5)'; // Эффект старой плёнки
-    
-    // Сохраняем текущие значения
-    originalUsdVal = usdEl.textContent;
-    originalEurVal = eurEl.textContent;
-    var keyRateEl = document.getElementById('key-rate');
-    originalRateVal = keyRateEl.textContent;
-
-    // Меняем на "золотые"
-    usdEl.textContent = '30.50 ₽';
-    usdEl.classList.remove('up', 'down');
-    eurEl.textContent = '40.00 ₽';
-    eurEl.classList.remove('up', 'down');
-    keyRateEl.textContent = '5.50%';
-    keyRateEl.style.color = 'var(--accent)'; // Зелёная ставка (хорошая!)
-
-    alert('🎉 Добро пожаловать в 2013 год!\n\nКурс доллара: 30.50 ₽\nКурс евро: 40.00 ₽\nСтавка ЦБ: 5.50%\n\nНаслаждайтесь стабильностью, коллега. У вас есть 15 секунд.');
-
-    setTimeout(function() {
-      // Возврат
-      usdEl.textContent = originalUsdVal;
-      eurEl.textContent = originalEurVal;
-      keyRateEl.textContent = originalRateVal;
-      keyRateEl.style.color = 'var(--danger)';
-      document.body.style.filter = '';
-      timeTravelActive = false;
-      log('[TIME TRAVEL]: Возврат в реальность. Стабильность закончилась.', 'reset');
-      alert('💸 2026 год. Добро пожаловать домой.');
-    }, 15000);
-  });
-  /* ============ ЛОКАЛЬНЫЙ MP3 ПЛЕЕР ============ */
+  /* ============ ЛОКАЛЬНЫЙ MP3 ПЛЕЕР С ПЛЕЙЛИСТОМ ============ */
   var audioFileInput = document.getElementById('audio-file-input');
   var btnLoadAudio = document.getElementById('btn-load-audio');
   var audioFileName = document.getElementById('audio-file-name');
   var localAudioPlayer = document.getElementById('local-audio-player');
+  var playlistContainer = document.getElementById('playlist-container');
+  var btnPrevTrack = document.getElementById('btn-prev-track');
+  var btnNextTrack = document.getElementById('btn-next-track');
+
+  var playlist = [];
+  var currentTrackIndex = 0;
 
   btnLoadAudio.addEventListener('click', function() {
     audioFileInput.click();
   });
 
   audioFileInput.addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (file) {
-      audioFileName.textContent = file.name;
-      var fileURL = URL.createObjectURL(file);
-      localAudioPlayer.src = fileURL;
-      localAudioPlayer.play();
-      log('[AUDIO]: Загружен и воспроизводится локальный файл: ' + file.name);
+    var files = Array.from(e.target.files);
+    if (files.length > 0) {
+      files.forEach(function(file) {
+        playlist.push({
+          file: file,
+          url: URL.createObjectURL(file),
+          name: file.name
+        });
+      });
+      
+      updatePlaylistUI();
+      
+      if (playlist.length === files.length) {
+        currentTrackIndex = 0;
+        playCurrentTrack();
+      }
+      
+      log('[AUDIO]: Загружено файлов в плейлист: ' + files.length);
     }
   });
+
+  function updatePlaylistUI() {
+    if (playlist.length === 0) {
+      playlistContainer.innerHTML = '<div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Плейлист пуст. Загрузите аудиофайлы.</div>';
+      audioFileName.textContent = 'Файлы не выбраны';
+      btnPrevTrack.disabled = true;
+      btnNextTrack.disabled = true;
+      return;
+    }
+
+    var html = '<div style="font-size: 0.8rem;">';
+    playlist.forEach(function(track, index) {
+      var isActive = index === currentTrackIndex;
+      var style = isActive ? 'color: var(--accent); font-weight: bold;' : 'color: var(--text);';
+      html += '<div style="padding: 4px 8px; cursor: pointer; ' + style + '" onclick="playTrack(' + index + ')">' + 
+              (index + 1) + '. ' + track.name + '</div>';
+    });
+    html += '</div>';
+    
+    playlistContainer.innerHTML = html;
+    audioFileName.textContent = playlist.length + ' трек(ов) в плейлисте';
+    btnPrevTrack.disabled = false;
+    btnNextTrack.disabled = false;
+  }
+
+  function playCurrentTrack() {
+    if (playlist.length === 0) return;
+    
+    var track = playlist[currentTrackIndex];
+    localAudioPlayer.src = track.url;
+    localAudioPlayer.play();
+    audioFileName.textContent = 'Сейчас: ' + track.name;
+    updatePlaylistUI();
+  }
+
+  function playTrack(index) {
+    if (index >= 0 && index < playlist.length) {
+      currentTrackIndex = index;
+      playCurrentTrack();
+    }
+  }
+
+  btnPrevTrack.addEventListener('click', function() {
+    if (currentTrackIndex > 0) {
+      currentTrackIndex--;
+      playCurrentTrack();
+    }
+  });
+
+  btnNextTrack.addEventListener('click', function() {
+    if (currentTrackIndex < playlist.length - 1) {
+      currentTrackIndex++;
+      playCurrentTrack();
+    }
+  });
+
+  localAudioPlayer.addEventListener('ended', function() {
+    if (currentTrackIndex < playlist.length - 1) {
+      currentTrackIndex++;
+      playCurrentTrack();
+    }
+  });
+
+  window.playTrack = playTrack;
 
   /* ============ РАДИО "АВРОРА" (Web Audio API) ============ */
   var radioPowerBtn = document.getElementById('btn-radio-power');
@@ -1609,7 +1702,6 @@
   var gainNode = null;
   var isRadioOn = false;
 
-  // Секретные частоты (в десятых долях МГц: 98.1 = 981)
   var stations = {
     912: "📡 [ПОМЕХИ] ...здесь кто-то есть? Если вы это слышите, мы в бункере под Заводом. Запасы на исходе...",
     981: "🎵 [МЕСТНОЕ ВЕЩАНИЕ] Кондрово на связи. Погода: переменная облачность, ветер 5 м/с. Здравый смысл в дефиците.",
@@ -1622,7 +1714,6 @@
     var AudioContext = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContext();
     
-    // Создаем буфер белого шума (2 секунды)
     var bufferSize = audioCtx.sampleRate * 2;
     var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     var data = buffer.getChannelData(0);
@@ -1635,7 +1726,7 @@
     noiseNode.loop = true;
     
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = 0.1; // Начальная громкость шума
+    gainNode.gain.value = 0.1;
     
     noiseNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
@@ -1677,7 +1768,6 @@
     var minDistance = 1000;
     var closestStation = null;
 
-    // Ищем ближайшую станцию
     for (var key in stations) {
       var distance = Math.abs(freq - parseInt(key));
       if (distance < minDistance) {
@@ -1686,20 +1776,51 @@
       }
     }
 
-    // Если мы близко к станции (в пределах 3 единиц = 0.3 МГц)
     if (minDistance <= 3) {
-      // Чем ближе, тем тише шум
       var noiseLevel = (minDistance / 3) * 0.15;
       gainNode.gain.setTargetAtTime(noiseLevel, audioCtx.currentTime, 0.1);
       radioDisplay.textContent = closestStation;
       radioDisplay.style.color = '#2ecc71';
     } else {
-      // Далеко от станций - максимальный шум
       gainNode.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.1);
       radioDisplay.textContent = "ПОИСК СИГНАЛА...";
       radioDisplay.style.color = '#8b949e';
     }
   }
+
+  // Загрузка пользовательских записей для радио
+  var radioRecordingsInput = document.getElementById('radio-recordings-input');
+  var btnLoadRadioRecordings = document.getElementById('btn-load-radio-recordings');
+  var radioRecordingsList = document.getElementById('radio-recordings-list');
+  var userRecordings = [];
+
+  btnLoadRadioRecordings.addEventListener('click', function() {
+    radioRecordingsInput.click();
+  });
+
+  radioRecordingsInput.addEventListener('change', function(e) {
+    var files = Array.from(e.target.files);
+    if (files.length > 0) {
+      files.forEach(function(file, index) {
+        userRecordings.push({
+          file: file,
+          url: URL.createObjectURL(file),
+          name: file.name,
+          freq: 900 + index * 10
+        });
+      });
+      
+      userRecordings.forEach(function(rec) {
+        stations[rec.freq] = '📼 [ЗАПИСЬ] ' + rec.name;
+      });
+      
+      radioRecordingsList.textContent = 'Загружено записей: ' + files.length + ' (частоты: ' + 
+        userRecordings.map(function(r) { return (r.freq/10).toFixed(1) + ' МГц'; }).join(', ') + ')';
+      
+      log('[RADIO]: Загружено пользовательских записей: ' + files.length);
+    }
+  });
+
 })();
 </script>
 </body>
