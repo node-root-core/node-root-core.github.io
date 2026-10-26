@@ -1809,11 +1809,7 @@
       radioAudioPlayer.pause();
     }
   }
-    radioDial.addEventListener('input', function() {
-    if (isRadioOn) {
-      updateRadio(parseInt(this.value));
-    }
-  });
+  
 
   // Загрузка пользовательских записей для радио
   var radioRecordingsInput = document.getElementById('radio-recordings-input');
