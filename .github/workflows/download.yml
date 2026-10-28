@@ -1,0 +1,52 @@
+name: Media Downloader (yt-dlp)
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Ссылка на видео (YouTube, TikTok, Instagram, X...)'
+        required: true
+        type: string
+      format:
+        description: 'Формат'
+        required: true
+        default: 'video'
+        type: choice
+        options:
+        - video
+        - audio
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Python & ffmpeg
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+    - name: Install yt-dlp
+      run: pip install yt-dlp
+
+    - name: Download Media
+      run: |
+        mkdir -p downloads
+        if [ "${{ github.event.inputs.format }}" = "video" ]; then
+          yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" --merge-output-format mp4 -o "downloads/%(title)s.%(ext)s" "${{ github.event.inputs.video_url }}"
+        else
+          yt-dlp -x --audio-format mp3 --audio-quality 0 -o "downloads/%(title)s.%(ext)s" "${{ github.event.inputs.video_url }}"
+        fi
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: academy-download-${{ github.run_id }}
+        path: downloads/
+        retention-days: 1
