@@ -27,6 +27,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -48,34 +53,31 @@ jobs:
         echo "🎯 Скачиваем: $URL"
         echo " Формат: $FORMAT"
         
-        # Определяем тип контента
-        if echo "$URL" | grep -q "tiktok.com"; then
-          echo " TikTok видео"
-          yt-dlp --no-playlist -f best -o "downloads/video.%(ext)s" "$URL"
-        elif echo "$URL" | grep -q "instagram.com"; then
-          echo "📸 Instagram"
-          yt-dlp --no-playlist -f best -o "downloads/video.%(ext)s" "$URL"
-        elif [ "$FORMAT" = "video" ]; then
+        # Общие опции для обхода защиты
+        COMMON_OPTS="--no-playlist --socket-timeout 30"
+        
+        if [ "$FORMAT" = "video" ]; then
           echo " YouTube видео"
-          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+          yt-dlp $COMMON_OPTS \
+            -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
             --merge-output-format mp4 \
-            --no-playlist \
+            --extractor-args "youtube:player_client=web,android,ios" \
             -o "downloads/%(title)s.%(ext)s" \
             "$URL"
         else
           echo "🎵 YouTube аудио (MP3)"
-          yt-dlp -x --audio-format mp3 --audio-quality 0 \
-            --no-playlist \
+          yt-dlp $COMMON_OPTS \
+            -x --audio-format mp3 --audio-quality 0 \
+            --extractor-args "youtube:player_client=web,android,ios" \
             -o "downloads/%(title)s.%(ext)s" \
             "$URL"
         fi
         
         # Проверяем результат
-        echo " Скачанные файлы:"
+        echo "📁 Скачанные файлы:"
         ls -lh downloads/
         
-        # Считаем файлы
-        FILE_COUNT=$(find downloads -type f | wc -l)
+        FILE_COUNT=$(find downloads -type f 2>/dev/null | wc -l)
         echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
         
         if [ "$FILE_COUNT" -eq 0 ]; then
@@ -92,3 +94,4 @@ jobs:
         name: academy-media-${{ github.run_id }}
         path: downloads/
         retention-days: 1
+        if-no-files-found: warn
