@@ -27,23 +27,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Install ffmpeg
-      run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+    - name: Install requests
+      run: pip install requests
 
-    - name: Install yt-dlp
-      run: pip install --upgrade yt-dlp
-
-    - name: Download Media
+    - name: Download via Cobalt API
       id: download
       run: |
         mkdir -p downloads
@@ -51,33 +43,72 @@ jobs:
         FORMAT="${{ github.event.inputs.format }}"
         
         echo "🎯 Скачиваем: $URL"
-        echo " Формат: $FORMAT"
         
-        # Общие опции для обхода защиты
-        COMMON_OPTS="--no-playlist --socket-timeout 30"
+        # Используем Cobalt API (бесплатный, без лимитов)
+        python3 << EOF
+        import requests
+        import json
+        import time
+        import os
         
-        if [ "$FORMAT" = "video" ]; then
-          echo " YouTube видео"
-          yt-dlp $COMMON_OPTS \
-            -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
-            --merge-output-format mp4 \
-            --extractor-args "youtube:player_client=web,android,ios" \
-            -o "downloads/%(title)s.%(ext)s" \
-            "$URL"
-        else
-          echo "🎵 YouTube аудио (MP3)"
-          yt-dlp $COMMON_OPTS \
-            -x --audio-format mp3 --audio-quality 0 \
-            --extractor-args "youtube:player_client=web,android,ios" \
-            -o "downloads/%(title)s.%(ext)s" \
-            "$URL"
-        fi
+        url = "$URL"
+        audio_only = "$FORMAT" == "audio"
         
-        # Проверяем результат
-        echo "📁 Скачанные файлы:"
-        ls -lh downloads/
+        # Cobalt API
+        response = requests.post(
+            "https://api.cobalt.tools/api/json",
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            json={
+                "url": url,
+                "vCodec": "h264" if not audio_only else "mp3",
+                "vQuality": "720" if not audio_only else "128",
+                "aFormat": "mp3" if audio_only else None,
+                "filenamePattern": "basic",
+                "isAudioOnly": audio_only,
+                "isTTFullAudio": False
+            }
+        )
         
-        FILE_COUNT=$(find downloads -type f 2>/dev/null | wc -l)
+        data = response.json()
+        print(f"API Response: {json.dumps(data, indent=2)}")
+        
+        if data.get("status") == "error":
+            print(f" Ошибка API: {data.get('text', 'Unknown error')}")
+            exit(1)
+        
+        if "url" not in data:
+            print("❌ Нет URL в ответе API")
+            exit(1)
+        
+        download_url = data["url"]
+        print(f"✅ Ссылка на скачивание: {download_url}")
+        
+        # Скачиваем файл
+        file_response = requests.get(download_url)
+        if file_response.status_code == 200:
+            ext = "mp3" if audio_only else "mp4"
+            filename = f"downloads/media.{ext}"
+            
+            with open(filename, "wb") as f:
+                f.write(file_response.content)
+            
+            file_size = len(file_response.content) / (1024 * 1024)  # MB
+            print(f"✅ Скачано: {filename} ({file_size:.2f} MB)")
+            
+            # Сохраняем информацию для артефакта
+            with open("downloads/info.txt", "w") as f:
+                f.write(f"URL: {url}\n")
+                f.write(f"Format: {FORMAT}\n")
+                f.write(f"Size: {file_size:.2f} MB\n")
+        else:
+            print(f"❌ Ошибка скачивания: {file_response.status_code}")
+            exit(1)
+        EOF
+        
+        FILE_COUNT=$(find downloads -type f -name "*.mp*" | wc -l)
         echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
         
         if [ "$FILE_COUNT" -eq 0 ]; then
@@ -85,6 +116,7 @@ jobs:
           exit 1
         else
           echo "✅ Скачано файлов: $FILE_COUNT"
+          ls -lh downloads/
         fi
 
     - name: Upload Artifact
@@ -94,4 +126,3 @@ jobs:
         name: academy-media-${{ github.run_id }}
         path: downloads/
         retention-days: 1
-        if-no-files-found: warn
