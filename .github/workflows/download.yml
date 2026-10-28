@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Ссылка на видео (YouTube, TikTok, Instagram, X...)'
+        description: 'Ссылка (YouTube, TikTok, Instagram и др.)'
         required: true
         type: string
       format:
@@ -33,44 +33,62 @@ jobs:
         python-version: '3.11'
 
     - name: Install ffmpeg
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq ffmpeg
-        ffmpeg -version
+      run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
-    - name: Install yt-dlp (latest)
-      run: |
-        python3 -m pip install --upgrade pip
-        pip install --upgrade yt-dlp
-        yt-dlp --version
+    - name: Install yt-dlp
+      run: pip install --upgrade yt-dlp
 
     - name: Download Media
+      id: download
       run: |
         mkdir -p downloads
-        echo "Скачиваем: ${{ github.event.inputs.video_url }}"
-        echo "Формат: ${{ github.event.inputs.format }}"
+        URL="${{ github.event.inputs.video_url }}"
+        FORMAT="${{ github.event.inputs.format }}"
         
-        if [ "${{ github.event.inputs.format }}" = "video" ]; then
-          yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best" \
+        echo "🎯 Скачиваем: $URL"
+        echo " Формат: $FORMAT"
+        
+        # Определяем тип контента
+        if echo "$URL" | grep -q "tiktok.com"; then
+          echo " TikTok видео"
+          yt-dlp --no-playlist -f best -o "downloads/video.%(ext)s" "$URL"
+        elif echo "$URL" | grep -q "instagram.com"; then
+          echo "📸 Instagram"
+          yt-dlp --no-playlist -f best -o "downloads/video.%(ext)s" "$URL"
+        elif [ "$FORMAT" = "video" ]; then
+          echo " YouTube видео"
+          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
             --merge-output-format mp4 \
             --no-playlist \
-            -o "downloads/%(title).50s.%(ext)s" \
-            "${{ github.event.inputs.video_url }}" || exit 1
+            -o "downloads/%(title)s.%(ext)s" \
+            "$URL"
         else
+          echo "🎵 YouTube аудио (MP3)"
           yt-dlp -x --audio-format mp3 --audio-quality 0 \
             --no-playlist \
-            -o "downloads/%(title).50s.%(ext)s" \
-            "${{ github.event.inputs.video_url }}" || exit 1
+            -o "downloads/%(title)s.%(ext)s" \
+            "$URL"
         fi
         
-        echo "=== Скачанные файлы ==="
+        # Проверяем результат
+        echo " Скачанные файлы:"
         ls -lh downloads/
+        
+        # Считаем файлы
+        FILE_COUNT=$(find downloads -type f | wc -l)
+        echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+        
+        if [ "$FILE_COUNT" -eq 0 ]; then
+          echo "❌ Файлы не скачаны!"
+          exit 1
+        else
+          echo "✅ Скачано файлов: $FILE_COUNT"
+        fi
 
     - name: Upload Artifact
-      if: always()
+      if: steps.download.outputs.file_count > 0
       uses: actions/upload-artifact@v4
       with:
-        name: academy-download-${{ github.run_id }}
+        name: academy-media-${{ github.run_id }}
         path: downloads/
-        retention-days: 3
-        if-no-files-found: error
+        retention-days: 1
