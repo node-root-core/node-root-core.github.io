@@ -144,7 +144,11 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html, body { height: 100%; }
+  html, body { 
+    height: 100%; 
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
 
   body {
     background: var(--bg);
@@ -1574,6 +1578,19 @@
           }
         }, 500);
         return;
+      }
+              else if (lowerCmd === 'metricom') {
+        term.writeln('\x1b[1;36m[METRICOM GLOBAL VILLAGE]\x1b[0m');
+        term.writeln('\x1b[90m"We are creating a new kind of public square, a global village..." \x1b[0m— Bill Gates, 1996');
+        term.writeln('\x1b[1;33m[ПРИМЕЧАНИЕ АКАДЕМИИ]:\x1b[0m');
+        term.writeln('Билл обещал нам глобальную деревню, а мы получили глобальную свалку спама, DPI-фильтры и кондровский буфер обмена.');
+        term.writeln('Но эй, по крайней мере, у нас есть этот терминал. \x1b[1;33m🚜\x1b[0m');
+      }
+      else if (lowerCmd === 'рос' || lowerCmd === 'зеркало') {
+        term.writeln('\x1b[1;31m[СИСТЕМА]: Обнаружено принудительное зеркалирование...\x1b[0m');
+        term.writeln('\x1b[90m🌍 "Окошко в Европу" теперь смотрит через российское зеркало.\x1b[0m');
+        term.writeln('\x1b[90m📊 Пинг: 79ms (через фильтр, одобренный министерством правды)\x1b[0m');
+        term.writeln('\x1b[1;33m Совет: Если хотите настоящую Европу — дерните за шнурок!\x1b[0m');
       }
       else if (lowerCmd !== '') {
         term.writeln('\x1b[1;31mКоманда не найдена: \x1b[0m' + cmd);
