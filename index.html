@@ -1929,6 +1929,66 @@
   var GITHUB_OWNER = 'node-root-core';
   var GITHUB_REPO = 'node-root-core.github.io';
   var WORKFLOW_FILE = 'download.yml';
+  var dlPollInterval = null;
+
+  function getDlToken() {
+    var token = localStorage.getItem('gh_dl_token');
+    if (!token) {
+      token = prompt('Введите ваш GitHub Personal Access Token (classic, с правами "repo").\nОн сохранится только в этом браузере.\nСоздать: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic) -> Generate new token (classic)');
+      if (!token) return null;
+      localStorage.setItem('gh_dl_token', token);
+    }
+    return token;
+  }
+
+  function checkWorkflowStatus(runId, token) {
+    fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}`, {
+      headers: { 'Authorization': `token ${token}` }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.status === 'completed') {
+        clearInterval(dlPollInterval);
+        dlPollInterval = null;
+        
+        if (data.conclusion === 'success') {
+          // Задача успешна — получаем артефакт
+          fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/artifacts`, {
+            headers: { 'Authorization': `token ${token}` }
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(artifactsData) {
+            if (artifactsData.artifacts && artifactsData.artifacts.length > 0) {
+              var artifact = artifactsData.artifacts[0];
+              dlStatus.innerHTML = 
+                '✅ Готово! Файл: <b>' + artifact.name + '</b> (' + 
+                (artifact.size_in_bytes / 1024 / 1024).toFixed(2) + ' МБ)<br>' +
+                '<a href="' + artifact.archive_download_url + '" target="_blank" ' +
+                'style="display: inline-block; margin-top: 8px; padding: 8px 16px; ' +
+                'background: var(--accent); color: var(--bg); border-radius: 6px; ' +
+                'text-decoration: none; font-weight: bold;">️ СКАЧАТЬ ФАЙЛ</a>';
+              dlStatus.style.color = 'var(--accent)';
+            } else {
+              dlStatus.textContent = '✅ Задача выполнена, но файл не найден в артефактах.';
+            }
+          });
+        } else {
+          dlStatus.innerHTML = '❌ Ошибка выполнения. <a href="https://github.com/' + 
+            GITHUB_OWNER + '/' + GITHUB_REPO + '/actions/runs/' + runId + 
+            '" target="_blank" style="color: var(--danger);">Посмотреть логи</a>';
+          dlStatus.style.color = 'var(--danger)';
+        }
+        btnRunDl.disabled = false;
+      } else {
+        // Всё ещё выполняется
+        var elapsed = Math.floor((Date.now() - window.dlStartTime) / 1000);
+        dlStatus.textContent = ' Выполняется... (' + data.status + ') — ' + elapsed + ' сек. Проверка через 10 сек...';
+      }
+    })
+    .catch(function(err) {
+      console.error('Polling error:', err);
+    });
+  }
 
   btnRunDl.addEventListener('click', function() {
     var url = dlUrlInput.value.trim();
@@ -1940,12 +2000,8 @@
       return;
     }
 
-    var token = localStorage.getItem('gh_dl_token');
-    if (!token) {
-      token = prompt('Введите ваш GitHub Personal Access Token (с правами "repo").\nОн сохранится только в этом браузере.\nСоздать: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)');
-      if (!token) return;
-      localStorage.setItem('gh_dl_token', token);
-    }
+    var token = getDlToken();
+    if (!token) return;
 
     dlStatus.textContent = '⏳ Отправка задачи в GitHub Actions...';
     dlStatus.style.color = 'var(--accent)';
@@ -1968,23 +2024,49 @@
     })
     .then(function(res) {
       if (res.status === 204) {
-        dlStatus.innerHTML = `✅ Задача запущена! <a href="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/actions" target="_blank" style="color: var(--accent); text-decoration: underline;">Открыть Actions</a>, чтобы скачать файл через 1-2 минуты (ищите в разделе "Artifacts").`;
-        dlStatus.style.color = 'var(--accent)';
-        dlUrlInput.value = '';
+        dlStatus.textContent = '⏳ Задача отправлена. Ожидаем запуска...';
+        
+        // Ждём 15 секунд, пока GitHub запустит задачу
+        setTimeout(function() {
+          // Получаем ID последнего запуска
+          fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=1`, {
+            headers: { 'Authorization': `token ${token}` }
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.workflow_runs && data.workflow_runs.length > 0) {
+              var runId = data.workflow_runs[0].id;
+              window.dlStartTime = Date.now();
+              dlStatus.textContent = '⏳ Задача запущена (ID: ' + runId + '). Ожидаем завершения...';
+              
+              // Запускаем polling каждые 10 секунд
+              dlPollInterval = setInterval(function() {
+                checkWorkflowStatus(runId, token);
+              }, 10000);
+              
+              // Первая проверка сразу
+              checkWorkflowStatus(runId, token);
+            } else {
+              dlStatus.textContent = '⚠️ Задача отправлена, но не найдена в списке. Проверьте Actions вручную.';
+              btnRunDl.disabled = false;
+            }
+          });
+        }, 15000);
       } else {
         return res.json().then(function(data) { throw new Error(data.message || 'Ошибка API'); });
       }
     })
     .catch(function(err) {
-      dlStatus.textContent = '❌ Ошибка: ' + err.message + ' (Проверьте токен и имя ветки)';
+      dlStatus.textContent = '❌ Ошибка: ' + err.message;
       dlStatus.style.color = 'var(--danger)';
       localStorage.removeItem('gh_dl_token');
-    })
-    .finally(function() {
       btnRunDl.disabled = false;
+      if (dlPollInterval) {
+        clearInterval(dlPollInterval);
+        dlPollInterval = null;
+      }
     });
   });
-
   // Инициализация сохраненных данных при загрузке
   loadPlaylistFromStorage();
   loadRadioRecordingsFromStorage();
