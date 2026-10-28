@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>АКАДЕМИЯ БЕЗ АШИБОК</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+<!-- OPEN GRAPH ТЕГИ ДЛЯ КРАСИВЫХ ССЫЛОК -->
+<meta property="og:title" content="АКАДЕМИЯ БЕЗ АШИБОК">
+<meta property="og:description" content="Идентификаторы здравого смысла в условиях глобального бездорожья. Терминалы, радио, аналитика и обход блокировок.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://node-root-core.github.io/">
+
 <style>
   :root {
     --bg: #0b0e14;
@@ -567,6 +574,18 @@
     background: var(--card);
     border: 1px solid var(--card-border);
   }
+
+  /* === ЯРКИЙ ТЕКСТ ДЛЯ ТЕРМИНАЛА === */
+  #local-terminal .xterm {
+    font-weight: 700 !important;
+  }
+  #local-terminal .xterm-text {
+    font-weight: 700 !important;
+    filter: brightness(1.4) !important;
+  }
+  #local-terminal * {
+    font-weight: 700 !important;
+  }
 </style>
 </head>
 <body>
@@ -804,6 +823,24 @@
   </div>
 <!-- Скрытый плеер для воспроизведения загруженных записей -->
 <audio id="radio-audio-player" style="display: none;"></audio>
+
+  <!-- ЗАГРУЗЧИК МЕДИА (GITHUB ACTIONS) -->
+  <div class="card full-width">
+    <h2>📥 Медиа-даунлодер (обход блокировок)</h2>
+    <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 15px;">
+      ⚠️ Использует серверы GitHub и yt-dlp. Требуется ваш GitHub PAT (сохраняется только в вашем браузере).
+    </p>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+      <input type="text" id="dl-url" placeholder="https://youtube.com/watch?v=..." style="flex: 1; min-width: 200px; background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit; outline: none;">
+      <select id="dl-format" style="background: #0d1117; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-family: inherit;">
+        <option value="video">Видео (MP4)</option>
+        <option value="audio">Аудио (MP3)</option>
+      </select>
+      <button id="btn-run-dl" style="width: auto; padding: 10px 20px;">🚀 Запустить</button>
+    </div>
+    <div id="dl-status" style="font-size: 0.85rem; color: var(--accent); min-height: 20px;"></div>
+  </div>
+
   <div class="card full-width">
     <h2>🤖 ИИ-Аналитик</h2>
     <textarea id="ai-input" placeholder="Вставьте сюда партию свежесваренной останкинской лапши..."></textarea>
@@ -1382,7 +1419,6 @@
     timeTravelActive = true;
     
     log('[TIME TRAVEL]: Активирован протокол переноса в 2013 год! 🕰️', 'secret');
-    // ИСПРАВЛЕНИЕ БАГА: применяем фильтр к wrapper, а не к body
     document.getElementById('content-wrapper').style.filter = 'sepia(0.6) hue-rotate(-10deg) saturate(1.5)';
     
     originalUsdVal = usdEl.textContent;
@@ -1404,7 +1440,6 @@
       eurEl.textContent = originalEurVal;
       keyRateEl.textContent = originalRateVal;
       keyRateEl.style.color = 'var(--danger)';
-      // ИСПРАВЛЕНИЕ БАГА: корректное удаление фильтра
       document.getElementById('content-wrapper').style.removeProperty('filter');
       timeTravelActive = false;
       log('[TIME TRAVEL]: Возврат в реальность. Стабильность закончилась.', 'reset');
@@ -1579,7 +1614,7 @@
         }, 500);
         return;
       }
-              else if (lowerCmd === 'metricom') {
+      else if (lowerCmd === 'metricom') {
         term.writeln('\x1b[1;36m[METRICOM GLOBAL VILLAGE]\x1b[0m');
         term.writeln('\x1b[90m"We are creating a new kind of public square, a global village..." \x1b[0m— Bill Gates, 1996');
         term.writeln('\x1b[1;33m[ПРИМЕЧАНИЕ АКАДЕМИИ]:\x1b[0m');
@@ -1590,7 +1625,7 @@
         term.writeln('\x1b[1;31m[СИСТЕМА]: Обнаружено принудительное зеркалирование...\x1b[0m');
         term.writeln('\x1b[90m🌍 "Окошко в Европу" теперь смотрит через российское зеркало.\x1b[0m');
         term.writeln('\x1b[90m📊 Пинг: 79ms (через фильтр, одобренный министерством правды)\x1b[0m');
-        term.writeln('\x1b[1;33m Совет: Если хотите настоящую Европу — дерните за шнурок!\x1b[0m');
+        term.writeln('\x1b[1;33m💡 Совет: Если хотите настоящую Европу — дерните за шнурок!\x1b[0m');
       }
       else if (lowerCmd !== '') {
         term.writeln('\x1b[1;31mКоманда не найдена: \x1b[0m' + cmd);
@@ -1619,6 +1654,20 @@
   var playlist = [];
   var currentTrackIndex = 0;
 
+  function savePlaylistToStorage() {
+    var playlistNames = playlist.map(function(track) { return track.name; });
+    localStorage.setItem('academy_playlist', JSON.stringify(playlistNames));
+  }
+
+  function loadPlaylistFromStorage() {
+    var saved = localStorage.getItem('academy_playlist');
+    if (saved) {
+      var names = JSON.parse(saved);
+      log('[AUDIO]: Найдено сохраненных треков: ' + names.length + ' (требуется повторная загрузка файлов)');
+      audioFileName.textContent = 'Сохранено треков: ' + names.length + ' (загрузите файлы заново)';
+    }
+  }
+
   btnLoadAudio.addEventListener('click', function() {
     audioFileInput.click();
   });
@@ -1642,6 +1691,7 @@
       }
       
       log('[AUDIO]: Загружено файлов в плейлист: ' + files.length);
+      savePlaylistToStorage();
     }
   });
 
@@ -1728,6 +1778,22 @@
     1077: "🚂 [СИГНАЛ 'АВРОРЫ'] Курс на восток. Артём, если ты это слышишь, мы ждём тебя у моста. Конец связи."
   };
 
+  function saveRadioRecordingsToStorage() {
+    var recordingsInfo = userRecordings.map(function(rec) {
+      return { name: rec.name, freq: rec.freq };
+    });
+    localStorage.setItem('academy_radio_recordings', JSON.stringify(recordingsInfo));
+  }
+
+  function loadRadioRecordingsFromStorage() {
+    var saved = localStorage.getItem('academy_radio_recordings');
+    if (saved) {
+      var info = JSON.parse(saved);
+      log('[RADIO]: Найдено сохраненных записей: ' + info.length + ' (требуется повторная загрузка)');
+      radioRecordingsList.textContent = 'Сохранено записей: ' + info.length + ' (загрузите заново)';
+    }
+  }
+
   function initRadioAudio() {
     if (audioCtx) return;
     var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1780,7 +1846,7 @@
     }
   });
 
-   function updateRadio(freq) {
+  function updateRadio(freq) {
     var freqMhz = (freq / 10).toFixed(1);
     radioFreqDisplay.textContent = freqMhz;
     
@@ -1795,7 +1861,6 @@
       }
     }
 
-    // Проверяем, является ли ближайшая станция пользовательской записью
     var userRec = userRecordings.find(function(r) { return r.freq === closestStationFreq; });
 
     if (minDistance <= 3) {
@@ -1803,7 +1868,6 @@
       gainNode.gain.setTargetAtTime(noiseLevel, audioCtx.currentTime, 0.1);
       
       if (userRec) {
-        // ЭТО ПОЛЬЗОВАТЕЛЬСКАЯ ЗАПИСЬ: воспроизводим её
         radioDisplay.textContent = "📼 Воспроизведение: " + userRec.name;
         radioDisplay.style.color = '#2ecc71';
         
@@ -1814,7 +1878,6 @@
           });
         }
       } else {
-        // ЭТО ВСТРОЕННАЯ ТЕКСТОВАЯ СТАНЦИЯ
         radioDisplay.textContent = stations[closestStationFreq];
         radioDisplay.style.color = '#2ecc71';
         radioAudioPlayer.pause();
@@ -1826,9 +1889,7 @@
       radioAudioPlayer.pause();
     }
   }
-  
 
-  // Загрузка пользовательских записей для радио
   var radioRecordingsInput = document.getElementById('radio-recordings-input');
   var btnLoadRadioRecordings = document.getElementById('btn-load-radio-recordings');
   var radioRecordingsList = document.getElementById('radio-recordings-list');
@@ -1855,9 +1916,78 @@
         userRecordings.map(function(r) { return (r.freq/10).toFixed(1) + ' МГц'; }).join(', ') + ')';
       
       log('[RADIO]: Загружено пользовательских записей: ' + files.length);
+      saveRadioRecordingsToStorage();
     }
   });
 
+  /* ============ ЗАГРУЗЧИК МЕДИА ЧЕРЕЗ GITHUB ACTIONS ============ */
+  var dlUrlInput = document.getElementById('dl-url');
+  var dlFormatSelect = document.getElementById('dl-format');
+  var btnRunDl = document.getElementById('btn-run-dl');
+  var dlStatus = document.getElementById('dl-status');
+
+  var GITHUB_OWNER = 'node-root-core';
+  var GITHUB_REPO = 'node-root-core.github.io';
+  var WORKFLOW_FILE = 'download.yml';
+
+  btnRunDl.addEventListener('click', function() {
+    var url = dlUrlInput.value.trim();
+    var format = dlFormatSelect.value;
+    
+    if (!url) {
+      dlStatus.textContent = '❌ Вставьте ссылку!';
+      dlStatus.style.color = 'var(--danger)';
+      return;
+    }
+
+    var token = localStorage.getItem('gh_dl_token');
+    if (!token) {
+      token = prompt('Введите ваш GitHub Personal Access Token (с правами "repo").\nОн сохранится только в этом браузере.\nСоздать: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)');
+      if (!token) return;
+      localStorage.setItem('gh_dl_token', token);
+    }
+
+    dlStatus.textContent = '⏳ Отправка задачи в GitHub Actions...';
+    dlStatus.style.color = 'var(--accent)';
+    btnRunDl.disabled = true;
+
+    fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          video_url: url,
+          format: format
+        }
+      })
+    })
+    .then(function(res) {
+      if (res.status === 204) {
+        dlStatus.innerHTML = `✅ Задача запущена! <a href="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/actions" target="_blank" style="color: var(--accent); text-decoration: underline;">Открыть Actions</a>, чтобы скачать файл через 1-2 минуты (ищите в разделе "Artifacts").`;
+        dlStatus.style.color = 'var(--accent)';
+        dlUrlInput.value = '';
+      } else {
+        return res.json().then(function(data) { throw new Error(data.message || 'Ошибка API'); });
+      }
+    })
+    .catch(function(err) {
+      dlStatus.textContent = '❌ Ошибка: ' + err.message + ' (Проверьте токен и имя ветки)';
+      dlStatus.style.color = 'var(--danger)';
+      localStorage.removeItem('gh_dl_token');
+    })
+    .finally(function() {
+      btnRunDl.disabled = false;
+    });
+  });
+
+  // Инициализация сохраненных данных при загрузке
+  loadPlaylistFromStorage();
+  loadRadioRecordingsFromStorage();
 
 })();
 </script>
