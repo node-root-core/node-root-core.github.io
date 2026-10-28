@@ -21,32 +21,56 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Python & ffmpeg
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
-    - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        python-version: '3.11'
 
-    - name: Install yt-dlp
-      run: pip install yt-dlp
+    - name: Install ffmpeg
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq ffmpeg
+        ffmpeg -version
+
+    - name: Install yt-dlp (latest)
+      run: |
+        python3 -m pip install --upgrade pip
+        pip install --upgrade yt-dlp
+        yt-dlp --version
 
     - name: Download Media
       run: |
         mkdir -p downloads
+        echo "Скачиваем: ${{ github.event.inputs.video_url }}"
+        echo "Формат: ${{ github.event.inputs.format }}"
+        
         if [ "${{ github.event.inputs.format }}" = "video" ]; then
-          yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" --merge-output-format mp4 -o "downloads/%(title)s.%(ext)s" "${{ github.event.inputs.video_url }}"
+          yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best" \
+            --merge-output-format mp4 \
+            --no-playlist \
+            -o "downloads/%(title).50s.%(ext)s" \
+            "${{ github.event.inputs.video_url }}" || exit 1
         else
-          yt-dlp -x --audio-format mp3 --audio-quality 0 -o "downloads/%(title)s.%(ext)s" "${{ github.event.inputs.video_url }}"
+          yt-dlp -x --audio-format mp3 --audio-quality 0 \
+            --no-playlist \
+            -o "downloads/%(title).50s.%(ext)s" \
+            "${{ github.event.inputs.video_url }}" || exit 1
         fi
+        
+        echo "=== Скачанные файлы ==="
+        ls -lh downloads/
 
     - name: Upload Artifact
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: academy-download-${{ github.run_id }}
         path: downloads/
-        retention-days: 1
+        retention-days: 3
+        if-no-files-found: error
