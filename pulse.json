@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-01T23:54:55.999345Z",
+  "updated": "2026-11-02T00:24:06.470192Z",
   "services": {
     "Яндекс": "ok",
     "ВКонтакте": "ok",
-    "Госуслуги": "ok",
+    "Госуслуги": "down",
     "MAX": "ok",
-    "ChatGPT": "down",
+    "ChatGPT": "ok",
     "Gemini": "ok",
     "DeepSeek": "down",
     "Qwen": "down",
