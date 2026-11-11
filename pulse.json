@@ -1,9 +1,9 @@
 {
-  "updated": "2026-11-11T14:39:43.333096Z",
+  "updated": "2026-11-11T15:25:17.224334Z",
   "services": {
     "Яндекс": "ok",
     "ВКонтакте": "ok",
-    "Госуслуги": "ok",
+    "Госуслуги": "down",
     "MAX": "ok",
     "ChatGPT": "ok",
     "Gemini": "ok",
@@ -11,7 +11,7 @@
     "Qwen": "down",
     "Grok": "ok",
     "GitHub": "ok",
-    "GitVerse": "ok",
+    "GitVerse": "down",
     "Hugging Face": "ok",
     "Cloudflare": "down",
     "Telegram": "ok",
